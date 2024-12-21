@@ -170,6 +170,7 @@ return_code_t command_register_peer_deserialize(
         return_code = FAILURE_BUFFER_TOO_SMALL;
         goto end;
     }
+    // TODO check for invalid deserialized command?
     deserialized_command_register_peer.sin6_family = ntohs(
         *(uint16_t *)next_spot_in_buffer);
     next_spot_in_buffer += sizeof(uint16_t);
@@ -218,6 +219,8 @@ return_code_t command_send_peer_list_serialize(
     command_send_peer_list_t *command_send_peer_list,
     unsigned char **buffer,
     uint64_t *buffer_size) {
+    // TODO serialize list
+    // TODO once we know the size, set command_send_peer_list->header->command_len to the right length, serialize the header, and combine the buffers
     return FAILURE_INVALID_INPUT;
 }
 
