@@ -219,9 +219,61 @@ return_code_t command_send_peer_list_serialize(
     command_send_peer_list_t *command_send_peer_list,
     unsigned char **buffer,
     uint64_t *buffer_size) {
-    // TODO serialize list
-    // TODO once we know the size, set command_send_peer_list->header->command_len to the right length, serialize the header, and combine the buffers
-    return FAILURE_INVALID_INPUT;
+    return_code_t return_code = SUCCESS;
+    if (NULL == command_send_peer_list ||
+        NULL == buffer ||
+        NULL == buffer_size) {
+        return_code = FAILURE_INVALID_INPUT;
+        goto end;
+    }
+    if (COMMAND_SEND_PEER_LIST != command_send_peer_list->header.command) {
+        return_code = FAILURE_INVALID_COMMAND;
+        goto end;
+    }
+    uint64_t send_peer_list_size = sizeof(uint64_t);
+    unsigned char *send_peer_list_buffer = calloc(1, send_peer_list_size);
+    if (NULL == send_peer_list_buffer) {
+        return_code = FAILURE_COULD_NOT_MALLOC;
+        goto end;
+    }
+    unsigned char *next_spot_in_buffer = send_peer_list_buffer;
+    *(uint64_t *)next_spot_in_buffer = htobe64(
+        command_send_peer_list->peer_list_data_len);
+    next_spot_in_buffer += sizeof(uint64_t);
+    command_send_peer_list->header.command_len =
+        send_peer_list_size + command_send_peer_list->peer_list_data_len;
+    unsigned char *header_buffer = NULL;
+    uint64_t header_size = 0;
+    return_code = command_header_serialize(
+        &command_send_peer_list->header, &header_buffer, &header_size);
+    if (SUCCESS != return_code) {
+        free(send_peer_list_buffer);
+        goto end;
+    }
+    uint64_t total_size =
+        header_size +
+        send_peer_list_size +
+        command_send_peer_list->peer_list_data_len;
+    unsigned char *total_buffer = calloc(1, total_size);
+    if (NULL == total_buffer) {
+        free(header_buffer);
+        free(send_peer_list_buffer);
+        return_code = FAILURE_COULD_NOT_MALLOC;
+        goto end;
+    }
+    memcpy(total_buffer, header_buffer, header_size);
+    memcpy(
+        total_buffer + header_size, send_peer_list_buffer, send_peer_list_size);
+    memcpy(
+        total_buffer + header_size + send_peer_list_size,
+        command_send_peer_list->peer_list_data,
+        command_send_peer_list->peer_list_data_len);
+    free(header_buffer);
+    free(send_peer_list_buffer);
+    *buffer = total_buffer;
+    *buffer_size = total_size;
+end:    
+    return return_code;
 }
 
 return_code_t command_send_peer_list_deserialize(
