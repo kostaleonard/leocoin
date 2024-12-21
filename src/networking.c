@@ -164,13 +164,13 @@ return_code_t command_register_peer_deserialize(
     if (SUCCESS != return_code) {
         goto end;
     }
+    // TODO check for invalid deserialized command?
     unsigned char *next_spot_in_buffer = buffer + sizeof(command_header_t);
     ptrdiff_t total_read_size = next_spot_in_buffer + sizeof(uint16_t) - buffer;
     if (total_read_size > buffer_size) {
         return_code = FAILURE_BUFFER_TOO_SMALL;
         goto end;
     }
-    // TODO check for invalid deserialized command?
     deserialized_command_register_peer.sin6_family = ntohs(
         *(uint16_t *)next_spot_in_buffer);
     next_spot_in_buffer += sizeof(uint16_t);
@@ -280,5 +280,50 @@ return_code_t command_send_peer_list_deserialize(
     command_send_peer_list_t *command_send_peer_list,
     unsigned char *buffer,
     uint64_t buffer_size) {
-    return FAILURE_INVALID_INPUT;
+    return_code_t return_code = SUCCESS;
+    if (NULL == command_send_peer_list || NULL == buffer) {
+        return_code = FAILURE_INVALID_INPUT;
+        goto end;
+    }
+    command_send_peer_list_t deserialized_command_send_peer_list = {0};
+    return_code = command_header_deserialize(
+        &deserialized_command_send_peer_list.header, buffer, buffer_size);
+    if (SUCCESS != return_code) {
+        goto end;
+    }
+    // TODO check for invalid deserialized command?
+    unsigned char *next_spot_in_buffer = buffer + sizeof(command_header_t);
+    ptrdiff_t total_read_size = next_spot_in_buffer + sizeof(uint64_t) - buffer;
+    if (total_read_size > buffer_size) {
+        return_code = FAILURE_BUFFER_TOO_SMALL;
+        goto end;
+    }
+    deserialized_command_send_peer_list.peer_list_data_len = betoh64(
+        *(uint64_t *)next_spot_in_buffer);
+    next_spot_in_buffer += sizeof(uint64_t);
+    total_read_size += deserialized_command_send_peer_list.peer_list_data_len;
+    if (total_read_size > buffer_size) {
+        return_code = FAILURE_BUFFER_TOO_SMALL;
+        goto end;
+    }
+    deserialized_command_send_peer_list.peer_list_data = calloc(
+        deserialized_command_send_peer_list.peer_list_data_len, 1);
+    if (NULL == deserialized_command_send_peer_list.peer_list_data) {
+        return_code = FAILURE_COULD_NOT_MALLOC;
+        goto end;
+    }
+    for (
+        uint64_t idx = 0;
+        idx < deserialized_command_send_peer_list.peer_list_data_len;
+        idx++) {
+        deserialized_command_send_peer_list.peer_list_data[idx] =
+            *next_spot_in_buffer;
+        next_spot_in_buffer++;
+    }
+    memcpy(
+        command_send_peer_list,
+        &deserialized_command_send_peer_list,
+        sizeof(command_send_peer_list_t));
+end:
+    return return_code;
 }
