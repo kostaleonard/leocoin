@@ -248,6 +248,8 @@ int main(int argc, char **argv) {
         cmocka_unit_test(
             test_command_register_peer_deserialize_fails_on_invalid_prefix),
         cmocka_unit_test(
+            test_command_register_peer_deserialize_fails_on_invalid_command),
+        cmocka_unit_test(
             test_command_register_peer_deserialize_fails_on_invalid_input),
         cmocka_unit_test(
             test_command_send_peer_list_serialize_fails_on_invalid_input),
@@ -263,6 +265,8 @@ int main(int argc, char **argv) {
             test_command_send_peer_list_deserialize_fails_on_read_past_buffer),
         cmocka_unit_test(
             test_command_send_peer_list_deserialize_fails_on_invalid_prefix),
+        cmocka_unit_test(
+            test_command_send_peer_list_deserialize_fails_on_invalid_command),
         cmocka_unit_test(
             test_command_send_peer_list_deserialize_fails_on_invalid_input),
     };

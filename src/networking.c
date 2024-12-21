@@ -164,7 +164,11 @@ return_code_t command_register_peer_deserialize(
     if (SUCCESS != return_code) {
         goto end;
     }
-    // TODO check for invalid deserialized command?
+    if (COMMAND_REGISTER_PEER !=
+        deserialized_command_register_peer.header.command) {
+        return_code = FAILURE_INVALID_COMMAND;
+        goto end;
+    }
     unsigned char *next_spot_in_buffer = buffer + sizeof(command_header_t);
     ptrdiff_t total_read_size = next_spot_in_buffer + sizeof(uint16_t) - buffer;
     if (total_read_size > buffer_size) {
@@ -291,7 +295,11 @@ return_code_t command_send_peer_list_deserialize(
     if (SUCCESS != return_code) {
         goto end;
     }
-    // TODO check for invalid deserialized command?
+    if (COMMAND_SEND_PEER_LIST !=
+        deserialized_command_send_peer_list.header.command) {
+        return_code = FAILURE_INVALID_COMMAND;
+        goto end;
+    }
     unsigned char *next_spot_in_buffer = buffer + sizeof(command_header_t);
     ptrdiff_t total_read_size = next_spot_in_buffer + sizeof(uint64_t) - buffer;
     if (total_read_size > buffer_size) {
