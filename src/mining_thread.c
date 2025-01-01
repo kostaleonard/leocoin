@@ -122,16 +122,16 @@ return_code_t *mine_blocks(mine_blocks_args_t *args) {
             if (FAILURE_COULD_NOT_FIND_VALID_PROOF_OF_WORK == return_code) {
                 if (args->print_progress) {
                     printf("\nCouldn't find valid proof of work for block; "
-                           "generating new block\n");
+                           "generating new block.\n");
                 }
             } else if (FAILURE_LONGER_BLOCKCHAIN_DETECTED == return_code) {
                 if (args->print_progress) {
-                    printf("Longer chain detected; switching to new chain\n");
+                    printf("Longer chain detected; switching to new chain.\n");
                 }
                 return_code = SUCCESS;
             } else if (FAILURE_STOPPED_EARLY == return_code) {
                 if (args->print_progress) {
-                    printf("Stopping miner\n");
+                    printf("Stopping miner.\n");
                 }
                 return_code = SUCCESS;
             } else {

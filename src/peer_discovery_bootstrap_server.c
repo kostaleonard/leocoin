@@ -123,6 +123,7 @@ int main(int argc, char **argv) {
         command_register_peer_t command_register_peer = {0};
         // TODO use error command to send info back to client
         //command_error_t command_error = {0};
+        // TODO don't need this because we know we're expecting a peer list command and it includes header deserialization.
         return_code = command_header_deserialize(
             &command_header, (unsigned char *)recv_buf, bytes_received);
         if (SUCCESS != return_code) {
@@ -180,6 +181,7 @@ int main(int argc, char **argv) {
         }
         // TODO filter peer list for last_connected > 60 seconds old
         command_send_peer_list_t command_send_peer_list = {0};
+        // TODO can use the header initializer
         memcpy(command_send_peer_list.header.command_prefix, COMMAND_PREFIX, COMMAND_PREFIX_LEN);
         command_send_peer_list.header.command = COMMAND_SEND_PEER_LIST;
         return_code = peer_info_list_serialize(peer_list, &command_send_peer_list.peer_list_data, &command_send_peer_list.peer_list_data_len);

@@ -25,6 +25,7 @@ typedef enum return_code_t {
     FAILURE_INVALID_COMMAND_PREFIX,
     FAILURE_INVALID_COMMAND,
     FAILURE_INVALID_COMMAND_LEN,
+    FAILURE_SLEEP,
 } return_code_t;
 
 #endif  // INCLUDE_RETURN_CODES_H_
