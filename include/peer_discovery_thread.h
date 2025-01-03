@@ -4,6 +4,7 @@
 
 #ifndef INCLUDE_PEER_DISCOVERY_THREAD_H_
 #define INCLUDE_PEER_DISCOVERY_THREAD_H_
+#define DEFAULT_COMMUNICATION_INTERVAL_SECONDS 20
 
 #include <pthread.h>
 #include <stdatomic.h>

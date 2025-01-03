@@ -26,8 +26,8 @@ void print_usage_statement(char *program_name) {
     fprintf(
         stderr,
         "Usage: %s "
-        "-p <private_key_file_base64_encoded_contents> "
-        "-k <public_key_file_base64_encoded_contents>\n",
+        "-p [private_key_file_base64_encoded_contents] "
+        "-k [public_key_file_base64_encoded_contents]\n",
         program_name);
     fprintf(
         stderr,

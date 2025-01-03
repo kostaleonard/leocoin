@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
     // TODO IP information in peer list expires after 60 seconds, and peers are responsible for reconnecting with the server every now and then to refresh.
     // TODO just before sending the current peer list, filter out any expired peer addresses.
     if (2 != argc) {
-        fprintf(stderr, "Usage: %s <port>\n", argv[0]);
+        fprintf(stderr, "Usage: %s [port]\n", argv[0]);
         return_code = FAILURE_INVALID_COMMAND_LINE_ARGS;
         goto end;
     }
