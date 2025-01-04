@@ -38,4 +38,6 @@ typedef struct discover_peers_args_t {
 // TODO docstrings
 return_code_t *discover_peers(discover_peers_args_t *args);
 
+void *discover_peers_pthread_wrapper(void *args);
+
 #endif  // INCLUDE_PEER_DISCOVERY_THREAD_H_

@@ -4,6 +4,7 @@
 
 // TODO this file is primarily for testing, it's not intended to be run standalone by actual users
 
+#include <stdatomic.h>
 #include <stdio.h>
 #include <unistd.h>
 #include "include/peer_discovery.h"
@@ -66,8 +67,31 @@ int main(int argc, char **argv) {
     if (SUCCESS != return_code) {
         goto end;
     }
-    // TODO fill in args
-    // TODO launch thread
+    return_code = pthread_mutex_init(&args.peer_info_list_mutex, NULL);
+    if (SUCCESS != return_code) {
+        linked_list_destroy(args.peer_info_list);
+        goto end;
+    }
+    args.print_progress = true;
+    atomic_bool should_stop = false;
+    args.should_stop = &should_stop;
+    bool exit_ready = false;
+    args.exit_ready = &exit_ready;
+    return_code = pthread_cond_init(&args.exit_ready_cond, NULL);
+    if (SUCCESS != return_code) {
+        goto end;
+    }
+    return_code = pthread_mutex_init(&args.exit_ready_mutex, NULL);
+    if (SUCCESS != return_code) {
+        goto end;
+    }
+    return_code_t *return_code_ptr = discover_peers(&args);
+    return_code = *return_code_ptr;
+    free(return_code_ptr);
+    linked_list_destroy(args.peer_info_list);
+    pthread_mutex_destroy(&args.peer_info_list_mutex);
+    pthread_cond_destroy(&args.exit_ready_cond);
+    pthread_mutex_destroy(&args.exit_ready_mutex);
 end:
     return return_code;
 }

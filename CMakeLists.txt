@@ -47,6 +47,13 @@ if(WIN32)
     target_link_libraries(peer_discovery ws2_32)
     target_link_libraries(peer_discovery_bootstrap_server ws2_32)
 endif()
+# Peer discovery client
+add_executable(peer_discovery_client src/peer_discovery_client.c)
+target_link_libraries(peer_discovery_client linked_list)
+target_link_libraries(peer_discovery_client peer_discovery)
+add_library(peer_discovery_thread src/peer_discovery_thread.c)
+target_link_libraries(peer_discovery_thread sleep)
+target_link_libraries(peer_discovery_client peer_discovery_thread)
 # Tests
 add_executable(tests tests/main.c)
 add_library(test_file_paths tests/file_paths.c)

@@ -1,5 +1,6 @@
 // TODO registers with peer discovery server and maintains peer list.
 
+#include <stdio.h>
 #include "include/peer_discovery_thread.h"
 #include "include/sleep.h"
 
@@ -28,8 +29,13 @@ return_code_t *discover_peers(discover_peers_args_t *args) {
     *args->exit_ready = true;
     pthread_cond_signal(&args->exit_ready_cond);
     pthread_mutex_unlock(&args->exit_ready_mutex);
-end:
     return_code_t *return_code_ptr = malloc(sizeof(return_code_t));
     *return_code_ptr = return_code;
     return return_code_ptr;
+}
+
+void *discover_peers_pthread_wrapper(void *args) {
+    discover_peers_args_t *discover_peers_args = (discover_peers_args_t *)args;
+    return_code_t *return_code_ptr = discover_peers(discover_peers_args);
+    return (void *)return_code_ptr;
 }
