@@ -27,8 +27,8 @@ end:
 
 int main(int argc, char **argv) {
     return_code_t return_code = SUCCESS;
-    size_t num_positional_args = 3;
-    if (argc < num_positional_args) {
+    size_t num_positional_args = 2;
+    if (argc < num_positional_args + 1) {
         print_usage_statement(argv[0]);
         return_code = FAILURE_INVALID_COMMAND_LINE_ARGS;
         goto end;
