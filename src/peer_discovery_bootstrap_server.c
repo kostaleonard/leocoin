@@ -26,7 +26,6 @@
 
 int main(int argc, char **argv) {
     return_code_t return_code = SUCCESS;
-    printf("Hello peer discovery server\n");
     // TODO accepts connections, adds IP info to peer list, sends current peer list to peer that just connected, closes connection with peer
     // TODO IP information in peer list expires after 60 seconds, and peers are responsible for reconnecting with the server every now and then to refresh.
     // TODO just before sending the current peer list, filter out any expired peer addresses.
