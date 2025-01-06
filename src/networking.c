@@ -121,6 +121,7 @@ return_code_t command_register_peer_serialize(
     *(uint32_t *)next_spot_in_buffer = htonl(
         command_register_peer->sin6_scope_id);
     next_spot_in_buffer += sizeof(uint32_t);
+    // TODO also set the command here just in case.
     command_register_peer->header.command_len = register_peer_size;
     unsigned char *header_buffer = NULL;
     uint64_t header_size = 0;

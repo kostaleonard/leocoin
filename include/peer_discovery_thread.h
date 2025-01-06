@@ -25,6 +25,7 @@
 // TODO docstring. Look at mining_thread.h, because the synchronization stuff is the same
 typedef struct discover_peers_args_t {
     struct sockaddr_in6 peer_discovery_bootstrap_server_addr;
+    struct sockaddr_in6 peer_addr;
     uint64_t communication_interval_seconds;
     linked_list_t *peer_info_list; // TODO shared between threads. Initially empty.
     pthread_mutex_t peer_info_list_mutex;

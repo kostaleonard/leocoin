@@ -53,6 +53,7 @@ target_link_libraries(peer_discovery_client linked_list)
 target_link_libraries(peer_discovery_client peer_discovery)
 add_library(peer_discovery_thread src/peer_discovery_thread.c)
 target_link_libraries(peer_discovery_thread sleep)
+target_link_libraries(peer_discovery_thread networking)
 target_link_libraries(peer_discovery_client peer_discovery_thread)
 # Tests
 add_executable(tests tests/main.c)

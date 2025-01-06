@@ -20,6 +20,8 @@ void print_usage_statement(char *program_name) {
         "Usage: %s "
         "[server_ipv6_address] "
         "[server_port] "
+        "[peer_ipv6_address] "
+        "[peer_port] "
         "-i [communication_interval_seconds]\n",
         program_name);
 end:
@@ -27,7 +29,7 @@ end:
 
 int main(int argc, char **argv) {
     return_code_t return_code = SUCCESS;
-    size_t num_positional_args = 2;
+    size_t num_positional_args = 4;
     if (argc < num_positional_args + 1) {
         print_usage_statement(argv[0]);
         return_code = FAILURE_INVALID_COMMAND_LINE_ARGS;
@@ -48,19 +50,31 @@ int main(int argc, char **argv) {
                 goto end;
         }
     }
-    char *ipv6_address = argv[1];
-    uint16_t port = strtol(argv[2], NULL, 10);
+    char *server_ipv6_address = argv[1];
+    uint16_t server_port = strtol(argv[2], NULL, 10);
+    char *peer_ipv6_address = argv[3];
+    uint16_t peer_port = strtol(argv[4], NULL, 10);
     discover_peers_args_t args = {0};
     if (inet_pton(
         AF_INET6,
-        ipv6_address,
+        server_ipv6_address,
         &args.peer_discovery_bootstrap_server_addr.sin6_addr) != 1) {
-        fprintf(stderr, "Invalid IPv6 address: %s\n", ipv6_address);
+        fprintf(stderr, "Invalid server IPv6 address: %s\n", server_ipv6_address);
         return_code = FAILURE_INVALID_COMMAND_LINE_ARGS;
         goto end;
     }
     args.peer_discovery_bootstrap_server_addr.sin6_family = AF_INET6;
-    args.peer_discovery_bootstrap_server_addr.sin6_port = htons(port);
+    args.peer_discovery_bootstrap_server_addr.sin6_port = htons(server_port);
+     if (inet_pton(
+        AF_INET6,
+        peer_ipv6_address,
+        &args.peer_addr.sin6_addr) != 1) {
+        fprintf(stderr, "Invalid peer IPv6 address: %s\n", peer_ipv6_address);
+        return_code = FAILURE_INVALID_COMMAND_LINE_ARGS;
+        goto end;
+    }
+    args.peer_addr.sin6_family = AF_INET6;
+    args.peer_addr.sin6_port = htons(peer_port);
     args.communication_interval_seconds = communication_interval_seconds;
     return_code = linked_list_create(
         &args.peer_info_list, free, compare_peer_info_t);

@@ -1,6 +1,7 @@
 // TODO registers with peer discovery server and maintains peer list.
 
 #include <stdio.h>
+#include "include/networking.h"
 #include "include/peer_discovery_thread.h"
 #include "include/sleep.h"
 
@@ -30,7 +31,19 @@ return_code_t *discover_peers(discover_peers_args_t *args) {
             return_code = FAILURE_NETWORK_FUNCTION;
             goto end;
         }
-        send(client_fd, "test", 4, 0); // TODO send actual data
+        command_header_t command_header = COMMAND_HEADER_INITIALIZER;
+        command_header.command = COMMAND_REGISTER_PEER;
+        command_register_peer_t command_register_peer = {0};
+        command_register_peer.header = command_header;
+        command_register_peer.sin6_family = args->peer_addr.sin6_family;
+        command_register_peer.sin6_port = args->peer_addr.sin6_port;
+        command_register_peer.sin6_flowinfo = args->peer_addr.sin6_flowinfo;
+        memcpy(&command_register_peer.addr, &args->peer_addr.sin6_addr, sizeof(IN6_ADDR));
+        command_register_peer.sin6_scope_id = args->peer_addr.sin6_scope_id;
+        unsigned char *send_buffer = NULL;
+        uint64_t send_buffer_size = 0;
+        command_register_peer_serialize(&command_register_peer, &send_buffer, &send_buffer_size);
+        send(client_fd, (char *)send_buffer, send_buffer_size, 0);
         // TODO connect to peer discovery server
 
         // TODO register self as peer
