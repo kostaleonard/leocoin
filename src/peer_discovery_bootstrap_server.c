@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
         return_code = command_register_peer_deserialize(
             &command_register_peer,
             (unsigned char *)recv_buf,
-            bytes_received);
+            bytes_received + sizeof(command_header_t));
         // TODO send back peer list or error message
         if (SUCCESS != return_code) {
             // TODO send error message that the server couldn't deserialize the register peer command
@@ -180,7 +180,6 @@ int main(int argc, char **argv) {
         }
         // TODO filter peer list for last_connected > 60 seconds old
         command_send_peer_list_t command_send_peer_list = {0};
-        // TODO can use the header initializer
         memcpy(command_send_peer_list.header.command_prefix, COMMAND_PREFIX, COMMAND_PREFIX_LEN);
         command_send_peer_list.header.command = COMMAND_SEND_PEER_LIST;
         return_code = peer_info_list_serialize(peer_list, &command_send_peer_list.peer_list_data, &command_send_peer_list.peer_list_data_len);
