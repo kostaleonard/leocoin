@@ -1,5 +1,3 @@
-// TODO registers with peer discovery server and maintains peer list.
-
 #include <stdio.h>
 #include "include/networking.h"
 #include "include/peer_discovery.h"
@@ -46,7 +44,6 @@ return_code_t *discover_peers(discover_peers_args_t *args) {
         command_register_peer_serialize(&command_register_peer, &send_buf, &send_buf_size);
         send(client_fd, (char *)send_buf, send_buf_size, 0);
         free(send_buf);
-        // TODO receive peer list
         char recv_buf[BUFSIZ] = {0};
         int bytes_received = recv(client_fd, recv_buf, sizeof(command_header_t), 0);
         if (bytes_received < 0) {
@@ -86,6 +83,11 @@ return_code_t *discover_peers(discover_peers_args_t *args) {
             printf("IPv6 Address: %s\n", ip_str);
             printf("Port: %d\n", port);
         }
+        #ifdef _WIN32
+            closesocket(client_fd);
+        # else
+            close(client_fd);
+        #endif
         sleep_microseconds(args->communication_interval_seconds * 1000000);
         should_stop = *args->should_stop;
     }
@@ -95,7 +97,9 @@ return_code_t *discover_peers(discover_peers_args_t *args) {
             printf("Stopping peer discovery.\n");
         }
     }
-    // TODO cleanup open socket
+    #ifdef _WIN32
+        WSACleanup();
+    #endif
     pthread_mutex_lock(&args->exit_ready_mutex);
     *args->exit_ready = true;
     pthread_cond_signal(&args->exit_ready_cond);

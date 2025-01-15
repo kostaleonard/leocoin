@@ -126,7 +126,6 @@ void test_command_header_deserialize_fails_on_invalid_input() {
 void test_command_register_peer_serialize_fails_on_invalid_input() {
     command_header_t command_header = COMMAND_HEADER_INITIALIZER;
     command_header.command = COMMAND_REGISTER_PEER;
-    command_header.command_len = COMMAND_REGISTER_PEER_LEN;
     command_register_peer_t command_register_peer = {0};
     command_register_peer.header = command_header;
     command_register_peer.sin6_family = AF_INET6;
@@ -151,7 +150,6 @@ void test_command_register_peer_serialize_fails_on_invalid_prefix() {
     command_header_t command_header = COMMAND_HEADER_INITIALIZER;
     command_header.command_prefix[2] = 'A';
     command_header.command = COMMAND_REGISTER_PEER;
-    command_header.command_len = COMMAND_REGISTER_PEER_LEN;
     command_register_peer_t command_register_peer = {0};
     command_register_peer.header = command_header;
     command_register_peer.sin6_family = AF_INET6;
@@ -169,7 +167,6 @@ void test_command_register_peer_serialize_fails_on_invalid_prefix() {
 void test_command_register_peer_serialize_fails_on_invalid_command() {
     command_header_t command_header = COMMAND_HEADER_INITIALIZER;
     command_header.command = COMMAND_OK;
-    command_header.command_len = COMMAND_REGISTER_PEER_LEN;
     command_register_peer_t command_register_peer = {0};
     command_register_peer.header = command_header;
     command_register_peer.sin6_family = AF_INET6;
@@ -187,7 +184,6 @@ void test_command_register_peer_serialize_fails_on_invalid_command() {
 void test_command_register_peer_serialize_creates_nonempty_buffer() {
     command_header_t command_header = COMMAND_HEADER_INITIALIZER;
     command_header.command = COMMAND_REGISTER_PEER;
-    command_header.command_len = COMMAND_REGISTER_PEER_LEN;
     command_register_peer_t command_register_peer = {0};
     command_register_peer.header = command_header;
     command_register_peer.sin6_family = AF_INET6;
@@ -211,7 +207,6 @@ void test_command_register_peer_serialize_creates_nonempty_buffer() {
 void test_command_register_peer_deserialize_reconstructs_command() {
     command_header_t command_header = COMMAND_HEADER_INITIALIZER;
     command_header.command = COMMAND_REGISTER_PEER;
-    command_header.command_len = COMMAND_REGISTER_PEER_LEN;
     command_register_peer_t command_register_peer = {0};
     command_register_peer.header = command_header;
     command_register_peer.sin6_family = AF_INET6;
@@ -238,7 +233,6 @@ void test_command_register_peer_deserialize_reconstructs_command() {
 void test_command_register_peer_deserialize_fails_on_read_past_buffer() {
     command_header_t command_header = COMMAND_HEADER_INITIALIZER;
     command_header.command = COMMAND_REGISTER_PEER;
-    command_header.command_len = COMMAND_REGISTER_PEER_LEN;
     command_register_peer_t command_register_peer = {0};
     command_register_peer.header = command_header;
     command_register_peer.sin6_family = AF_INET6;
@@ -261,7 +255,6 @@ void test_command_register_peer_deserialize_fails_on_read_past_buffer() {
 void test_command_register_peer_deserialize_fails_on_invalid_prefix() {
     command_header_t command_header = COMMAND_HEADER_INITIALIZER;
     command_header.command = COMMAND_REGISTER_PEER;
-    command_header.command_len = COMMAND_REGISTER_PEER_LEN;
     command_register_peer_t command_register_peer = {0};
     command_register_peer.header = command_header;
     command_register_peer.sin6_family = AF_INET6;
@@ -285,7 +278,6 @@ void test_command_register_peer_deserialize_fails_on_invalid_prefix() {
 void test_command_register_peer_deserialize_fails_on_invalid_command() {
     command_header_t command_header = COMMAND_HEADER_INITIALIZER;
     command_header.command = COMMAND_REGISTER_PEER;
-    command_header.command_len = COMMAND_REGISTER_PEER_LEN;
     command_register_peer_t command_register_peer = {0};
     command_register_peer.header = command_header;
     command_register_peer.sin6_family = AF_INET6;
@@ -309,7 +301,6 @@ void test_command_register_peer_deserialize_fails_on_invalid_command() {
 void test_command_register_peer_deserialize_fails_on_invalid_input() {
     command_header_t command_header = COMMAND_HEADER_INITIALIZER;
     command_header.command = COMMAND_REGISTER_PEER;
-    command_header.command_len = COMMAND_REGISTER_PEER_LEN;
     command_register_peer_t command_register_peer = {0};
     command_register_peer.header = command_header;
     command_register_peer.sin6_family = AF_INET6;

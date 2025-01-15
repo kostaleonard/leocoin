@@ -22,8 +22,6 @@
 #define COMMAND_PREFIX_LEN 4
 #define COMMAND_ERROR_MESSAGE_LEN 256
 #define COMMAND_HEADER_INITIALIZER {{'L', 'E', 'O', '\0'}, 0, 0}
-// TODO remove COMMAND_REGISTER_PEER_LEN? We can't tell the length for all of the commands in advance, so this could cause confusion
-#define COMMAND_REGISTER_PEER_LEN (sizeof(command_register_peer_t) - sizeof(command_header_t))
 
 typedef enum command_t {
     COMMAND_OK,

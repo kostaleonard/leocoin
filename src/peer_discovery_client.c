@@ -59,7 +59,8 @@ int main(int argc, char **argv) {
         AF_INET6,
         server_ipv6_address,
         &args.peer_discovery_bootstrap_server_addr.sin6_addr) != 1) {
-        fprintf(stderr, "Invalid server IPv6 address: %s\n", server_ipv6_address);
+        fprintf(
+            stderr, "Invalid server IPv6 address: %s\n", server_ipv6_address);
         return_code = FAILURE_INVALID_COMMAND_LINE_ARGS;
         goto end;
     }
