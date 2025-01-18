@@ -104,7 +104,7 @@ return_code_t command_register_peer_serialize(
         return_code = FAILURE_INVALID_COMMAND;
         goto end;
     }
-    uint64_t register_peer_size = 
+    uint64_t register_peer_size =
         sizeof(command_register_peer_t) - sizeof(command_header_t);
     unsigned char *register_peer_buffer = calloc(1, register_peer_size);
     if (NULL == register_peer_buffer) {
@@ -282,7 +282,7 @@ return_code_t command_send_peer_list_serialize(
     free(send_peer_list_buffer);
     *buffer = total_buffer;
     *buffer_size = total_size;
-end:    
+end:
     return return_code;
 }
 

@@ -65,7 +65,8 @@ return_code_t peer_info_list_serialize(
             peer->listen_addr.sin6_flowinfo);
         next_spot_in_buffer += sizeof(peer->listen_addr.sin6_flowinfo);
         for (size_t idx = 0; idx < sizeof(IN6_ADDR); idx++) {
-            *next_spot_in_buffer = ((unsigned char *)(&peer->listen_addr.sin6_addr))[idx];
+            *next_spot_in_buffer =
+                ((unsigned char *)(&peer->listen_addr.sin6_addr))[idx];
             next_spot_in_buffer++;
         }
         *(uint32_t *)next_spot_in_buffer = htonl(

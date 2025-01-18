@@ -1,8 +1,9 @@
 /**
  * @brief Runs the peer discovery client.
+ * 
+ * This client is primarily for debugging. It is not intended to be run as part
+ * of the LeoCoin app.
  */
-
-// TODO this file is primarily for testing, it's not intended to be run standalone by actual users
 
 #include <stdatomic.h>
 #include <stdio.h>

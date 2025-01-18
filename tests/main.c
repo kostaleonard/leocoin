@@ -23,9 +23,7 @@
 #include "tests/test_mining_thread.h"
 #include "tests/test_peer_discovery.h"
 #include "tests/test_networking.h"
-
-// TODO disable tests for CI
-#define RUN_SLOWTESTS
+#include "tests/test_sleep.h"
 
 int _unlink_callback(
     const char *fpath,
@@ -269,6 +267,8 @@ int main(int argc, char **argv) {
             test_command_send_peer_list_deserialize_fails_on_invalid_command),
         cmocka_unit_test(
             test_command_send_peer_list_deserialize_fails_on_invalid_input),
+        // test_sleep.h
+        cmocka_unit_test(test_sleep_microseconds_pauses_program),
     };
     return_code = cmocka_run_group_tests(tests, NULL, NULL);
 end:

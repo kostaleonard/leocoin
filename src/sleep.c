@@ -1,7 +1,6 @@
 #include <time.h>
 #include "include/sleep.h"
 
-// TODO test this function
 return_code_t sleep_microseconds(uint64_t microseconds) {
     return_code_t return_code = SUCCESS;
     struct timespec ts;
