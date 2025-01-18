@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "include/networking.h"
 #include "include/peer_discovery.h"
 #include "include/peer_discovery_thread.h"

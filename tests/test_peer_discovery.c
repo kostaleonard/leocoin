@@ -1,5 +1,8 @@
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "include/networking.h"
 #include "include/peer_discovery.h"
 #include "tests/test_peer_discovery.h"
 

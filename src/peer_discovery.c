@@ -2,9 +2,13 @@
  * @brief Contains functions for peer discovery.
  */
 
+#include <stddef.h>
 #include <stdio.h>
-#include "include/peer_discovery.h"
+#include <stdlib.h>
+#include <string.h>
 #include "include/endian.h"
+#include "include/networking.h"
+#include "include/peer_discovery.h"
 
 int compare_peer_info_t(void *peer1, void *peer2) {
     if (NULL == peer1 || NULL == peer2) {

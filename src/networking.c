@@ -2,7 +2,10 @@
  * @brief Contains networking functions.
  */
 
+#include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "include/endian.h"
 #include "include/networking.h"
 

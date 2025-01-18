@@ -7,7 +7,9 @@
 
 #include <stdatomic.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
+#include "include/networking.h"
 #include "include/peer_discovery.h"
 #include "include/peer_discovery_thread.h"
 #include "include/return_codes.h"

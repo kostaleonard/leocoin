@@ -14,6 +14,9 @@
     #include <sys/socket.h>
     #include <sys/types.h>
     #include <unistd.h>
+    #ifndef IN6_ADDR
+        typedef struct in6_addr IN6_ADDR;
+    #endif
 #endif
 #include <stdint.h>
 #include "include/return_codes.h"
