@@ -37,15 +37,20 @@ return_code_t *discover_peers(discover_peers_args_t *args) {
         command_register_peer.sin6_family = args->peer_addr.sin6_family;
         command_register_peer.sin6_port = args->peer_addr.sin6_port;
         command_register_peer.sin6_flowinfo = args->peer_addr.sin6_flowinfo;
-        memcpy(&command_register_peer.addr, &args->peer_addr.sin6_addr, sizeof(IN6_ADDR));
+        memcpy(
+            &command_register_peer.addr,
+            &args->peer_addr.sin6_addr,
+            sizeof(IN6_ADDR));
         command_register_peer.sin6_scope_id = args->peer_addr.sin6_scope_id;
         unsigned char *send_buf = NULL;
         uint64_t send_buf_size = 0;
-        command_register_peer_serialize(&command_register_peer, &send_buf, &send_buf_size);
+        command_register_peer_serialize(
+            &command_register_peer, &send_buf, &send_buf_size);
         send(client_fd, (char *)send_buf, send_buf_size, 0);
         free(send_buf);
         char recv_buf[BUFSIZ] = {0};
-        int bytes_received = recv(client_fd, recv_buf, sizeof(command_header_t), 0);
+        int bytes_received = recv(
+            client_fd, recv_buf, sizeof(command_header_t), 0);
         if (bytes_received < 0) {
             return_code = FAILURE_NETWORK_FUNCTION;
             goto end;
@@ -58,13 +63,20 @@ return_code_t *discover_peers(discover_peers_args_t *args) {
         if (COMMAND_SEND_PEER_LIST != command_header.command) {
             printf("Expected send peer list command\n");
         }
-        bytes_received = recv(client_fd, recv_buf + sizeof(command_header_t), command_header.command_len, 0);
+        bytes_received = recv(
+            client_fd,
+            recv_buf + sizeof(command_header_t),
+            command_header.command_len,
+            0);
         if (bytes_received < 0) {
             return_code = FAILURE_NETWORK_FUNCTION;
             goto end;
         }
         command_send_peer_list_t command_send_peer_list = {0};
-        return_code = command_send_peer_list_deserialize(&command_send_peer_list, (unsigned char *)recv_buf, bytes_received + sizeof(command_header_t));
+        return_code = command_send_peer_list_deserialize(
+            &command_send_peer_list,
+            (unsigned char *)recv_buf,
+            bytes_received + sizeof(command_header_t));
         if (SUCCESS != return_code) {
             printf("Send peer list deserialization error\n");
         }
@@ -72,7 +84,10 @@ return_code_t *discover_peers(discover_peers_args_t *args) {
             return_code = FAILURE_PTHREAD_FUNCTION;
             goto end;
         }
-        return_code = peer_info_list_deserialize(&args->peer_info_list, command_send_peer_list.peer_list_data, command_send_peer_list.peer_list_data_len);
+        return_code = peer_info_list_deserialize(
+            &args->peer_info_list,
+            command_send_peer_list.peer_list_data,
+            command_send_peer_list.peer_list_data_len);
         if (0 != pthread_mutex_unlock(&args->peer_info_list_mutex)) {
             return_code = FAILURE_PTHREAD_FUNCTION;
             goto end;
@@ -80,10 +95,16 @@ return_code_t *discover_peers(discover_peers_args_t *args) {
         if (SUCCESS != return_code) {
             printf("Peer list deserialization error\n");
         }
-        for (node_t *node = args->peer_info_list->head; NULL != node; node = node->next) {
+        for (node_t *node = args->peer_info_list->head;
+            NULL != node;
+            node = node->next) {
             peer_info_t *peer = (peer_info_t *)node->data;
             char ip_str[INET6_ADDRSTRLEN];
-            if (NULL == inet_ntop(AF_INET6, &peer->listen_addr.sin6_addr, ip_str, sizeof(ip_str))) {
+            if (NULL == inet_ntop(
+                AF_INET6,
+                &peer->listen_addr.sin6_addr,
+                ip_str,
+                sizeof(ip_str))) {
                 perror("inet_ntop");
             }
             int port = ntohs(peer->listen_addr.sin6_port);

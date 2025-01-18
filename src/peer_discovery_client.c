@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
         return_code = FAILURE_INVALID_COMMAND_LINE_ARGS;
         goto end;
     }
-    uint64_t communication_interval_seconds = 
+    uint64_t communication_interval_seconds =
         DEFAULT_COMMUNICATION_INTERVAL_SECONDS;
     int opt;
     while ((opt = getopt(
