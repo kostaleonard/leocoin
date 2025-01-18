@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
     }
     server_addr.sin6_family = AF_INET6;
     server_addr.sin6_addr = in6addr_any;
-    server_addr.sin6_port = htons((unsigned short)port);
+    server_addr.sin6_port = htons((uint16_t)port);
     if (bind(
         listen_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         return_code = FAILURE_NETWORK_FUNCTION;
@@ -82,10 +82,11 @@ int main(int argc, char **argv) {
     if (listen(listen_fd, LISTEN_BACKLOG) < 0) {
         return_code = FAILURE_NETWORK_FUNCTION;
         goto end;
-    }    
+    }
     while (true) {
         socklen_t client_len = sizeof(client_addr);
-        int conn_fd = accept(listen_fd, (struct sockaddr *)&client_addr, &client_len);
+        int conn_fd = accept(
+            listen_fd, (struct sockaddr *)&client_addr, &client_len);
         if (conn_fd < 0) {
             return_code = FAILURE_NETWORK_FUNCTION;
             goto end;
@@ -95,18 +96,33 @@ int main(int argc, char **argv) {
             goto end;
         }
         char client_hostname[NI_MAXHOST] = {0};
-        if (0 != getnameinfo((struct sockaddr *)&client_addr, client_len, client_hostname, NI_MAXHOST, NULL, 0, 0)) {
+        if (0 != getnameinfo(
+            (struct sockaddr *)&client_addr,
+            client_len,
+            client_hostname,
+            NI_MAXHOST,
+            NULL,
+            0,
+            0)) {
             return_code = FAILURE_NETWORK_FUNCTION;
             goto end;
         }
         char client_addr_str[INET6_ADDRSTRLEN] = {0};
-        if (NULL == inet_ntop(AF_INET6, &client_addr.sin6_addr, client_addr_str, INET6_ADDRSTRLEN)) {
+        if (NULL == inet_ntop(
+            AF_INET6,
+            &client_addr.sin6_addr,
+            client_addr_str,
+            INET6_ADDRSTRLEN)) {
             return_code = FAILURE_NETWORK_FUNCTION;
             goto end;
         }
-        printf("Server established connection with %s (%s)\n", client_hostname, client_addr_str);
+        printf(
+            "Server established connection with %s (%s)\n",
+            client_hostname,
+            client_addr_str);
         char recv_buf[BUFSIZ] = {0};
-        int bytes_received = recv(conn_fd, recv_buf, sizeof(command_header_t), 0);
+        int bytes_received = recv(
+            conn_fd, recv_buf, sizeof(command_header_t), 0);
         if (bytes_received < 0) {
             return_code = FAILURE_NETWORK_FUNCTION;
             goto end;
@@ -122,7 +138,11 @@ int main(int argc, char **argv) {
         if (COMMAND_REGISTER_PEER != command_header.command) {
             printf("Expected register peer command\n");
         }
-        bytes_received = recv(conn_fd, recv_buf + sizeof(command_header_t), command_header.command_len, 0);
+        bytes_received = recv(
+            conn_fd,
+            recv_buf + sizeof(command_header_t),
+            command_header.command_len,
+            0);
         if (bytes_received < 0) {
             return_code = FAILURE_NETWORK_FUNCTION;
             goto end;
@@ -133,14 +153,19 @@ int main(int argc, char **argv) {
             (unsigned char *)recv_buf,
             bytes_received + sizeof(command_header_t));
         if (SUCCESS != return_code) {
-            printf("Register peer deserialization error\n");   
+            printf("Register peer deserialization error\n");
         }
         peer_info_t *peer_info = malloc(sizeof(peer_info_t));
         peer_info->listen_addr.sin6_family = command_register_peer.sin6_family;
         peer_info->listen_addr.sin6_port = command_register_peer.sin6_port;
-        peer_info->listen_addr.sin6_flowinfo = command_register_peer.sin6_flowinfo;
-        memcpy(&peer_info->listen_addr.sin6_addr, command_register_peer.addr, sizeof(IN6_ADDR));
-        peer_info->listen_addr.sin6_scope_id = command_register_peer.sin6_scope_id;
+        peer_info->listen_addr.sin6_flowinfo =
+            command_register_peer.sin6_flowinfo;
+        memcpy(
+            &peer_info->listen_addr.sin6_addr,
+            command_register_peer.addr,
+            sizeof(IN6_ADDR));
+        peer_info->listen_addr.sin6_scope_id =
+            command_register_peer.sin6_scope_id;
         peer_info->last_connected = time(NULL);
         node_t *found_node = NULL;
         return_code = linked_list_find(peer_list, peer_info, &found_node);
@@ -162,22 +187,34 @@ int main(int argc, char **argv) {
             free(peer_info);
         }
         command_send_peer_list_t command_send_peer_list = {0};
-        memcpy(command_send_peer_list.header.command_prefix, COMMAND_PREFIX, COMMAND_PREFIX_LEN);
+        memcpy(
+            command_send_peer_list.header.command_prefix,
+            COMMAND_PREFIX,
+            COMMAND_PREFIX_LEN);
         command_send_peer_list.header.command = COMMAND_SEND_PEER_LIST;
-        return_code = peer_info_list_serialize(peer_list, &command_send_peer_list.peer_list_data, &command_send_peer_list.peer_list_data_len);
+        return_code = peer_info_list_serialize(
+            peer_list,
+            &command_send_peer_list.peer_list_data,
+            &command_send_peer_list.peer_list_data_len);
         if (SUCCESS != return_code) {
-            // TODO
             printf("peer_info_list_serialize error\n");
             goto end;
         }
         unsigned char *command_send_peer_list_buffer = NULL;
         uint64_t command_send_peer_list_buffer_len = 0;
-        return_code = command_send_peer_list_serialize(&command_send_peer_list, &command_send_peer_list_buffer, &command_send_peer_list_buffer_len);
+        return_code = command_send_peer_list_serialize(
+            &command_send_peer_list,
+            &command_send_peer_list_buffer,
+            &command_send_peer_list_buffer_len);
         if (SUCCESS != return_code) {
             printf("command_send_peer_list_serialize error\n");
             goto end;
         }
-        int bytes_sent = send(conn_fd, (char *)command_send_peer_list_buffer, command_send_peer_list_buffer_len, 0);
+        int bytes_sent = send(
+            conn_fd,
+            (char *)command_send_peer_list_buffer,
+            command_send_peer_list_buffer_len,
+            0);
         if (bytes_sent < 0) {
             return_code = FAILURE_NETWORK_FUNCTION;
             goto end;
