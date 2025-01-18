@@ -425,6 +425,7 @@ void test_command_send_peer_list_serialize_fails_on_invalid_prefix() {
         &command_send_peer_list, &buffer, &buffer_size);
     assert_true(FAILURE_INVALID_COMMAND_PREFIX == return_code);
     free(buffer);
+    free(peer_list_buffer);
     linked_list_destroy(peer_info_list);
 }
 
@@ -473,6 +474,7 @@ void test_command_send_peer_list_serialize_fails_on_invalid_command() {
         &command_send_peer_list, &buffer, &buffer_size);
     assert_true(FAILURE_INVALID_COMMAND == return_code);
     free(buffer);
+    free(peer_list_buffer);
     linked_list_destroy(peer_info_list);
 }
 
