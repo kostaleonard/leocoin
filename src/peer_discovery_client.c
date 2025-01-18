@@ -82,8 +82,8 @@ int main(int argc, char **argv) {
     if (SUCCESS != return_code) {
         goto end;
     }
-    return_code = pthread_mutex_init(&args.peer_info_list_mutex, NULL);
-    if (SUCCESS != return_code) {
+    if (0 != pthread_mutex_init(&args.peer_info_list_mutex, NULL)) {
+        return_code = FAILURE_PTHREAD_FUNCTION;
         linked_list_destroy(args.peer_info_list);
         goto end;
     }
@@ -92,12 +92,12 @@ int main(int argc, char **argv) {
     args.should_stop = &should_stop;
     bool exit_ready = false;
     args.exit_ready = &exit_ready;
-    return_code = pthread_cond_init(&args.exit_ready_cond, NULL);
-    if (SUCCESS != return_code) {
+    if (SUCCESS != pthread_cond_init(&args.exit_ready_cond, NULL)) {
+        return_code = FAILURE_PTHREAD_FUNCTION;
         goto end;
     }
-    return_code = pthread_mutex_init(&args.exit_ready_mutex, NULL);
-    if (SUCCESS != return_code) {
+    if (0 != pthread_mutex_init(&args.exit_ready_mutex, NULL)) {
+        return_code = FAILURE_PTHREAD_FUNCTION;
         goto end;
     }
     return_code_t *return_code_ptr = discover_peers(&args);

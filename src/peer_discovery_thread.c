@@ -68,12 +68,19 @@ return_code_t *discover_peers(discover_peers_args_t *args) {
         if (SUCCESS != return_code) {
             printf("Send peer list deserialization error\n");
         }
-        linked_list_t *peer_info_list = NULL;
-        return_code = peer_info_list_deserialize(&peer_info_list, command_send_peer_list.peer_list_data, command_send_peer_list.peer_list_data_len);
+        if (0 != pthread_mutex_lock(&args->peer_info_list_mutex)) {
+            return_code = FAILURE_PTHREAD_FUNCTION;
+            goto end;
+        }
+        return_code = peer_info_list_deserialize(&args->peer_info_list, command_send_peer_list.peer_list_data, command_send_peer_list.peer_list_data_len);
+        if (0 != pthread_mutex_unlock(&args->peer_info_list_mutex)) {
+            return_code = FAILURE_PTHREAD_FUNCTION;
+            goto end;
+        }
         if (SUCCESS != return_code) {
             printf("Peer list deserialization error\n");
         }
-        for (node_t *node = peer_info_list->head; NULL != node; node = node->next) {
+        for (node_t *node = args->peer_info_list->head; NULL != node; node = node->next) {
             peer_info_t *peer = (peer_info_t *)node->data;
             char ip_str[INET6_ADDRSTRLEN];
             if (NULL == inet_ntop(AF_INET6, &peer->listen_addr.sin6_addr, ip_str, sizeof(ip_str))) {

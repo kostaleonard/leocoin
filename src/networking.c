@@ -51,7 +51,8 @@ return_code_t command_header_deserialize(
     }
     command_header_t deserialized_command_header = {0};
     unsigned char *next_spot_in_buffer = buffer;
-    ptrdiff_t total_read_size = next_spot_in_buffer + COMMAND_PREFIX_LEN - buffer;
+    ptrdiff_t total_read_size =
+        next_spot_in_buffer + COMMAND_PREFIX_LEN - buffer;
     if (total_read_size > buffer_size) {
         return_code = FAILURE_BUFFER_TOO_SMALL;
         goto end;
@@ -69,16 +70,21 @@ return_code_t command_header_deserialize(
         return_code = FAILURE_BUFFER_TOO_SMALL;
         goto end;
     }
-    deserialized_command_header.command = ntohl(*(uint32_t *)next_spot_in_buffer);
+    deserialized_command_header.command =
+        ntohl(*(uint32_t *)next_spot_in_buffer);
     next_spot_in_buffer += sizeof(uint32_t);
     total_read_size = next_spot_in_buffer + sizeof(uint64_t) - buffer;
     if (total_read_size > buffer_size) {
         return_code = FAILURE_BUFFER_TOO_SMALL;
         goto end;
     }
-    deserialized_command_header.command_len = betoh64(*(uint64_t *)next_spot_in_buffer);
+    deserialized_command_header.command_len =
+        betoh64(*(uint64_t *)next_spot_in_buffer);
     next_spot_in_buffer += sizeof(uint64_t);
-    memcpy(command_header, &deserialized_command_header, sizeof(command_header_t));
+    memcpy(
+        command_header,
+        &deserialized_command_header,
+        sizeof(command_header_t));
 end:
     return return_code;
 }
@@ -121,7 +127,6 @@ return_code_t command_register_peer_serialize(
     *(uint32_t *)next_spot_in_buffer = htonl(
         command_register_peer->sin6_scope_id);
     next_spot_in_buffer += sizeof(uint32_t);
-    // TODO also set the command here just in case.
     command_register_peer->header.command_len = register_peer_size;
     unsigned char *header_buffer = NULL;
     uint64_t header_size = 0;

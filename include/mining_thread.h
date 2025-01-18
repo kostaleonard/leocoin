@@ -75,7 +75,7 @@ typedef struct mine_blocks_args_t {
 /**
  * @brief Mines blocks continuously until interrupted.
  * 
- * @param args Contains the function arguments. See mine_blocks_args for
+ * @param args Contains the function arguments. See mine_blocks_args_t for
  * details.
  * @return return_code_t A pointer to a return code indicating success or
  * failure. Callers must free.
