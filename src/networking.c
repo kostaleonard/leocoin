@@ -28,6 +28,7 @@ return_code_t command_header_serialize(
     for (size_t idx = 0; idx < COMMAND_PREFIX_LEN; idx++) {
         if (command_header->command_prefix[idx] != COMMAND_PREFIX[idx]) {
             return_code = FAILURE_INVALID_COMMAND_PREFIX;
+            free(serialization_buffer);
             goto end;
         }
         *next_spot_in_buffer = command_header->command_prefix[idx];
