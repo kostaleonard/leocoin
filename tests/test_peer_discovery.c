@@ -127,6 +127,7 @@ void test_peer_info_list_deserialize_reconstructs_list() {
     assert_true(NULL == node->next);
     free(buffer);
     linked_list_destroy(peer_info_list);
+    linked_list_destroy(deserialized_peer_info_list);
 }
 
 void test_peer_info_list_deserialize_fails_on_read_past_buffer() {
