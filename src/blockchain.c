@@ -525,6 +525,7 @@ return_code_t blockchain_serialize(
         size += sizeof(num_transactions_in_block);
         serialization_buffer = realloc(serialization_buffer, size);
         if (NULL == serialization_buffer) {
+            return_code = FAILURE_COULD_NOT_MALLOC;
             goto end;
         }
         // When we realloc, serialization_buffer may move. We need to use an
@@ -554,6 +555,7 @@ return_code_t blockchain_serialize(
             size += sizeof(transaction->sender_signature.bytes);
             serialization_buffer = realloc(serialization_buffer, size);
             if (NULL == serialization_buffer) {
+                return_code = FAILURE_COULD_NOT_MALLOC;
                 goto end;
             }
             // When we realloc, serialization_buffer may move. We need to use an

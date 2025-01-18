@@ -20,7 +20,10 @@
 #include "tests/test_transaction.h"
 #include "tests/test_base64.h"
 #include "tests/test_endian.h"
-#include "tests/test_miner.h"
+#include "tests/test_mining_thread.h"
+#include "tests/test_peer_discovery.h"
+#include "tests/test_networking.h"
+#include "tests/test_sleep.h"
 
 int _unlink_callback(
     const char *fpath,
@@ -66,6 +69,9 @@ return_code_t _create_empty_output_directory(char *dirname) {
     #else
         return_value = mkdir(dirname, 0755);
     #endif
+    if (0 != return_value) {
+        perror(dirname);
+    }
 end:
     return_code_t return_code = return_value == 0 ? SUCCESS : FAILURE_FILE_IO;
     return return_code;
@@ -200,7 +206,7 @@ int main(int argc, char **argv) {
         // test_endian.h
         cmocka_unit_test(test_htobe64_correctly_encodes_data),
         cmocka_unit_test(test_betoh64_correctly_decodes_data),
-        // test_miner.h
+        // test_mining_thread.h
         // These multithreaded tests are incredibly slow in valgrind.
         // They run very fast outside of valgrind.
         # ifdef RUN_SLOWTESTS
@@ -208,6 +214,64 @@ int main(int argc, char **argv) {
             cmocka_unit_test(
                 test_mine_blocks_mines_new_blockchain_when_version_incremented),
         # endif
+        // test_peer_discovery.h
+        cmocka_unit_test(test_compare_peer_info_t_compares_ip_addresses),
+        cmocka_unit_test(test_peer_info_list_serialize_fails_on_invalid_input),
+        cmocka_unit_test(test_peer_info_list_serialize_creates_nonempty_buffer),
+        cmocka_unit_test(test_peer_info_list_deserialize_reconstructs_list),
+        cmocka_unit_test(
+            test_peer_info_list_deserialize_fails_on_read_past_buffer),
+        cmocka_unit_test(
+            test_peer_info_list_deserialize_fails_on_invalid_input),
+        // test_networking.h
+        cmocka_unit_test(test_command_header_serialize_fails_on_invalid_input),
+        cmocka_unit_test(test_command_header_serialize_fails_on_invalid_prefix),
+        cmocka_unit_test(test_command_header_serialize_creates_nonempty_buffer),
+        cmocka_unit_test(test_command_header_deserialize_reconstructs_command),
+        cmocka_unit_test(
+            test_command_header_deserialize_fails_on_read_past_buffer),
+        cmocka_unit_test(
+            test_command_header_deserialize_fails_on_invalid_prefix),
+        cmocka_unit_test(
+            test_command_header_deserialize_fails_on_invalid_input),
+        cmocka_unit_test(
+            test_command_register_peer_serialize_fails_on_invalid_input),
+        cmocka_unit_test(
+            test_command_register_peer_serialize_fails_on_invalid_prefix),
+        cmocka_unit_test(
+            test_command_register_peer_serialize_fails_on_invalid_command),
+        cmocka_unit_test(
+            test_command_register_peer_serialize_creates_nonempty_buffer),
+        cmocka_unit_test(
+            test_command_register_peer_deserialize_reconstructs_command),
+        cmocka_unit_test(
+            test_command_register_peer_deserialize_fails_on_read_past_buffer),
+        cmocka_unit_test(
+            test_command_register_peer_deserialize_fails_on_invalid_prefix),
+        cmocka_unit_test(
+            test_command_register_peer_deserialize_fails_on_invalid_command),
+        cmocka_unit_test(
+            test_command_register_peer_deserialize_fails_on_invalid_input),
+        cmocka_unit_test(
+            test_command_send_peer_list_serialize_fails_on_invalid_input),
+        cmocka_unit_test(
+            test_command_send_peer_list_serialize_fails_on_invalid_prefix),
+        cmocka_unit_test(
+            test_command_send_peer_list_serialize_fails_on_invalid_command),
+        cmocka_unit_test(
+            test_command_send_peer_list_serialize_creates_nonempty_buffer),
+        cmocka_unit_test(
+            test_command_send_peer_list_deserialize_reconstructs_command),
+        cmocka_unit_test(
+            test_command_send_peer_list_deserialize_fails_on_read_past_buffer),
+        cmocka_unit_test(
+            test_command_send_peer_list_deserialize_fails_on_invalid_prefix),
+        cmocka_unit_test(
+            test_command_send_peer_list_deserialize_fails_on_invalid_command),
+        cmocka_unit_test(
+            test_command_send_peer_list_deserialize_fails_on_invalid_input),
+        // test_sleep.h
+        cmocka_unit_test(test_sleep_microseconds_pauses_program),
     };
     return_code = cmocka_run_group_tests(tests, NULL, NULL);
 end:

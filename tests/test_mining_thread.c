@@ -3,22 +3,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <unistd.h>
 #include "include/base64.h"
 #include "include/blockchain.h"
-#include "include/miner.h"
+#include "include/mining_thread.h"
+#include "include/sleep.h"
 #include "tests/test_cryptography.h"
-#include "tests/test_miner.h"
+#include "tests/test_mining_thread.h"
 
 #define NUM_LEADING_ZERO_BYTES_IN_BLOCK_HASH 2
-
-void sleep_microseconds(uint64_t microseconds) {
-    struct timespec ts;
-    ts.tv_sec = microseconds / 1000000;
-    ts.tv_nsec = (microseconds % 1000000) * 1000;
-    nanosleep(&ts, NULL);
-}
 
 void test_mine_blocks_exits_when_should_stop_is_set() {
     blockchain_t *blockchain = NULL;

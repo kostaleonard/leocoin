@@ -1,9 +1,9 @@
 /**
- * @brief Contains functions for mining and consensus.
+ * @brief Contains functions for the mining thread.
  */
 
-#ifndef INCLUDE_MINER_H_
-#define INCLUDE_MINER_H_
+#ifndef INCLUDE_MINING_THREAD_H_
+#define INCLUDE_MINING_THREAD_H_
 
 #include "include/return_codes.h"
 #include "include/blockchain.h"
@@ -75,7 +75,7 @@ typedef struct mine_blocks_args_t {
 /**
  * @brief Mines blocks continuously until interrupted.
  * 
- * @param args Contains the function arguments. See mine_blocks_args for
+ * @param args Contains the function arguments. See mine_blocks_args_t for
  * details.
  * @return return_code_t A pointer to a return code indicating success or
  * failure. Callers must free.
@@ -87,4 +87,4 @@ return_code_t *mine_blocks(mine_blocks_args_t *args);
  */
 void *mine_blocks_pthread_wrapper(void *args);
 
-#endif  // INCLUDE_MINER_H_
+#endif  // INCLUDE_MINING_THREAD_H_

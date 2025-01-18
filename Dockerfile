@@ -8,4 +8,4 @@ WORKDIR /app/build
 RUN cmake .. && \
     cmake --build .
 WORKDIR /app
-CMD ["/app/build/main"]
+CMD ["/app/build/miner"]
