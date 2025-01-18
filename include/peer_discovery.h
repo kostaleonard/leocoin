@@ -33,16 +33,40 @@ typedef struct peer_info_t {
     time_t last_connected;
 } peer_info_t;
 
-// TODO this function may go to networking.h or peer_info.h
+/**
+ * @brief Compares the listen_addr of two peer_info_t structs.
+ * 
+ * @return int 0 if peer1 and peer2 have the same listen_addr, otherwise some
+ * other number. This function does not compare the peers' last_connected
+ * values.
+ */
 int compare_peer_info_t(void *peer1, void *peer2);
 
-// TODO docstrings
+/**
+ * @brief Serializes the peer info list into a buffer.
+ * 
+ * @param peer_info_list A linked_list_t containing peer_info_t structs.
+ * @param buffer A pointer to fill with the bytes representing the list. Callers
+ * must free the buffer.
+ * @param buffer_size A pointer to fill with the final size of the buffer.
+ * @return return_code_t A return code indicating success or failure.
+ */
 return_code_t peer_info_list_serialize(
     linked_list_t *peer_info_list,
     unsigned char **buffer,
     uint64_t *buffer_size
 );
 
+/**
+ * @brief Deserializes a peer info list from the buffer.
+ * 
+ * @param peer_info_list A pointer to fill with the deserialized linked_list_t
+ * containing peer_info_t structs. If the buffer contains a valid peer info list,
+ * this pointer will be filled with data and the function will return SUCCESS.
+ * @param buffer The buffer. The data in the buffer is in network byte order.
+ * @param buffer_size The length of the buffer.
+ * @return return_code_t A return code indicating success or failure.
+ */
 return_code_t peer_info_list_deserialize(
     linked_list_t **peer_info_list,
     unsigned char *buffer,

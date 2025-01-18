@@ -151,7 +151,6 @@ return_code_t synchronized_blockchain_mine_block(
     bool print_progress,
     atomic_bool *should_stop,
     atomic_size_t *sync_version_currently_mined
-    // TODO need a pthread_cond_t mined_new_block to tell the networking thread when to broadcast the new block?
 );
 
 /**
