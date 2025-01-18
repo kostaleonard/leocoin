@@ -28,6 +28,8 @@ return_code_t _get_executable_directory(char *dirname) {
     if (length <= 0 || length >= TESTS_MAX_PATH) {
         return_code = FAILURE_FILE_IO;
         goto end;
+    } else {
+        dirname[length] = '\0';
     }
     // Remove the executable name to get the directory.
     char *last_slash = strrchr(dirname, '/');
