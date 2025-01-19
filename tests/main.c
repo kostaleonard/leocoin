@@ -24,6 +24,7 @@
 #include "tests/test_peer_discovery.h"
 #include "tests/test_networking.h"
 #include "tests/test_sleep.h"
+#include "tests/test_peer_discovery_thread.h"
 
 int _unlink_callback(
     const char *fpath,
@@ -272,6 +273,8 @@ int main(int argc, char **argv) {
             test_command_send_peer_list_deserialize_fails_on_invalid_input),
         // test_sleep.h
         cmocka_unit_test(test_sleep_microseconds_pauses_program),
+        // test_peer_discovery_thread.h
+        cmocka_unit_test(test_discover_peers_exits_when_should_stop_is_set),
     };
     return_code = cmocka_run_group_tests(tests, NULL, NULL);
 end:
