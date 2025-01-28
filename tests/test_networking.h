@@ -59,4 +59,9 @@ void test_command_send_peer_list_deserialize_fails_on_invalid_command();
 
 void test_command_send_peer_list_deserialize_fails_on_invalid_input();
 
+void test_recv_all_mock_works();
+
+// TODO remove?
+int __wrap_recv(int sockfd, char *buf, int len, int flags);
+
 #endif  // TESTS_TEST_NETWORKING_H_

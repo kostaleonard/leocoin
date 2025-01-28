@@ -7,6 +7,7 @@
 #ifdef _WIN32
     #include <winsock2.h>
     #include <ws2tcpip.h>
+    typedef int (*recv_func_t)(SOCKET, char *, int, int);
 #else
     #include <arpa/inet.h>
     #include <netdb.h>
@@ -17,6 +18,7 @@
     #ifndef IN6_ADDR
         typedef struct in6_addr IN6_ADDR;
     #endif
+    typedef ssize_t (*recv_func_t)(int, void *, ssize_t, int);
 #endif
 #include <stdint.h>
 #include "include/return_codes.h"
@@ -25,6 +27,10 @@
 #define COMMAND_PREFIX_LEN 4
 #define COMMAND_ERROR_MESSAGE_LEN 256
 #define COMMAND_HEADER_INITIALIZER {{'L', 'E', 'O', '\0'}, 0, 0}
+
+//TODO make sure everyone uses wrap_recv
+// This function is for mocking in unit tests.
+extern recv_func_t wrap_recv;
 
 /**
  * @brief Represents valid command codes for network communication.
@@ -187,5 +193,31 @@ return_code_t command_send_peer_list_deserialize(
     command_send_peer_list_t *command_send_peer_list,
     unsigned char *buffer,
     uint64_t buffer_size);
+
+/**
+ * @brief Receives exactly len bytes from sockfd into buf.
+ * 
+ * @param sockfd The socket from which to read.
+ * @param buf The buffer to fill with data.
+ * @param len The exact number of bytes to receive. This function will block
+ * until it receives exactly this many bytes. Callers should set a timeout on
+ * their sockets to prevent blocking indefinitely in the case that the sender
+ * does not or cannot transmit a complete message.
+ * @param flags Receive flags.
+ * @return return_code_t A return code indicating success or failure.
+ */
+return_code_t recv_all(int sockfd, void *buf, size_t len, int flags);
+
+/**
+ * @brief Sends exactly len bytes from buf through sockfd.
+ * 
+ * @param sockfd The socket to which to send.
+ * @param buf The buffer containing the data to send.
+ * @param len The exact number of bytes to send. This function may block while
+ * sending the data. Callers should consider setting a timeout on their sockets.
+ * @param flags Send flags.
+ * @return return_code_t A return code indicating success or failure.
+ */
+return_code_t send_all(int sockfd, void *buf, size_t len, int flags);
 
 #endif  // INCLUDE_NETWORKING_H_

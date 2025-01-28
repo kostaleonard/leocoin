@@ -9,6 +9,8 @@
 #include "include/endian.h"
 #include "include/networking.h"
 
+recv_func_t wrap_recv = recv;
+
 return_code_t command_header_serialize(
     command_header_t *command_header,
     unsigned char **buffer,
@@ -344,4 +346,14 @@ return_code_t command_send_peer_list_deserialize(
         sizeof(command_send_peer_list_t));
 end:
     return return_code;
+}
+
+return_code_t recv_all(int sockfd, void *buf, size_t len, int flags) {
+    // TODO placeholder for mocking
+    wrap_recv(sockfd, buf, len, flags);
+    return FAILURE_INVALID_INPUT;
+}
+
+return_code_t send_all(int sockfd, void *buf, size_t len, int flags) {
+    return FAILURE_INVALID_INPUT;
 }

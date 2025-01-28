@@ -12,6 +12,7 @@
     #include <sys/stat.h>
     #include <unistd.h>
 #endif
+#include "include/networking.h"
 #include "include/return_codes.h"
 #include "tests/file_paths.h"
 #include "tests/test_linked_list.h"
@@ -76,6 +77,11 @@ return_code_t _create_empty_output_directory(char *dirname) {
 end:
     return_code_t return_code = return_value == 0 ? SUCCESS : FAILURE_FILE_IO;
     return return_code;
+}
+
+int teardown() {
+    wrap_recv = recv;
+    return 0;
 }
 
 int main(int argc, char **argv) {
@@ -271,12 +277,13 @@ int main(int argc, char **argv) {
             test_command_send_peer_list_deserialize_fails_on_invalid_command),
         cmocka_unit_test(
             test_command_send_peer_list_deserialize_fails_on_invalid_input),
+        cmocka_unit_test(test_recv_all_mock_works),
         // test_sleep.h
         cmocka_unit_test(test_sleep_microseconds_pauses_program),
         // test_peer_discovery_thread.h
         cmocka_unit_test(test_discover_peers_exits_when_should_stop_is_set),
     };
-    return_code = cmocka_run_group_tests(tests, NULL, NULL);
+    return_code = cmocka_run_group_tests(tests, NULL, teardown);
 end:
     return return_code;
 }

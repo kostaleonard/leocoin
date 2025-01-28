@@ -810,3 +810,26 @@ void test_command_send_peer_list_deserialize_fails_on_invalid_input() {
     free(peer_list_buffer);
     linked_list_destroy(peer_info_list);
 }
+
+// TODO needs to be cross-platform
+// TODO this may need to go in a header file somewhere so that other files have access. But maybe not.
+int mock_recv(SOCKET sockfd, char *buf, int len, int flags) {
+    printf("Hello mocked recv\n");
+    void *recv_data = mock_type(void *);
+    ssize_t n = mock_type(ssize_t);
+    if (n > 0) {
+        memcpy(buf, recv_data, n);
+    }
+    return n;
+}
+
+// TODO this is just a placeholder so I understand how mocking works
+void test_recv_all_mock_works() {
+    wrap_recv = mock_recv;
+    will_return(mock_recv, "value 1");
+    will_return(mock_recv, 8);
+    char buf[10] = {0};
+    int bytes = recv_all(99, buf, 10, 0);
+    printf("buf: %s\n", buf);
+    printf("bytes read: %d\n", bytes);
+}
