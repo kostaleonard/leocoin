@@ -824,6 +824,7 @@ int mock_recv(SOCKET sockfd, char *buf, int len, int flags) {
 }
 
 // TODO this is just a placeholder so I understand how mocking works
+// TODO remove? Maybe keep as kind of documentation
 void test_recv_all_mock_works() {
     wrap_recv = mock_recv;
     will_return(mock_recv, "value 1");
@@ -832,4 +833,14 @@ void test_recv_all_mock_works() {
     int bytes = recv_all(99, buf, 10, 0);
     printf("buf: %s\n", buf);
     printf("bytes read: %d\n", bytes);
+}
+
+void test_recv_all_reads_data_from_socket() {
+    // TODO
+    assert_true(false);
+}
+
+void test_recv_all_handles_partial_read() {
+    // TODO
+    assert_true(false);
 }

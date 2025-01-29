@@ -61,7 +61,8 @@ void test_command_send_peer_list_deserialize_fails_on_invalid_input();
 
 void test_recv_all_mock_works();
 
-// TODO remove?
-int __wrap_recv(int sockfd, char *buf, int len, int flags);
+void test_recv_all_reads_data_from_socket();
+
+void test_recv_all_handles_partial_read();
 
 #endif  // TESTS_TEST_NETWORKING_H_

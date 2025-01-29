@@ -278,6 +278,8 @@ int main(int argc, char **argv) {
         cmocka_unit_test(
             test_command_send_peer_list_deserialize_fails_on_invalid_input),
         cmocka_unit_test(test_recv_all_mock_works),
+        cmocka_unit_test(test_recv_all_reads_data_from_socket),
+        cmocka_unit_test(test_recv_all_handles_partial_read),
         // test_sleep.h
         cmocka_unit_test(test_sleep_microseconds_pauses_program),
         // test_peer_discovery_thread.h
