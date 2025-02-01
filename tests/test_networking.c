@@ -7,6 +7,8 @@
 #include "include/peer_discovery.h"
 #include "tests/test_networking.h"
 
+#define MOCK_SOCKET 99
+
 void test_command_header_serialize_fails_on_invalid_input() {
     command_header_t command_header = COMMAND_HEADER_INITIALIZER;
     command_header.command = COMMAND_REGISTER_PEER;
@@ -836,11 +838,33 @@ void test_recv_all_mock_works() {
 }
 
 void test_recv_all_reads_data_from_socket() {
-    // TODO
-    assert_true(false);
+    wrap_recv = mock_recv;
+    char *read_data = "hello recv";
+    size_t read_data_len = strlen(read_data) + 1;
+    will_return(mock_recv, read_data);
+    will_return(mock_recv, read_data_len);
+    char buf[BUFSIZ] = {0};
+    return_code_t return_code = recv_all(MOCK_SOCKET, buf, read_data_len, 0);
+    assert_true(SUCCESS == return_code);
+    assert_true(0 == strncmp(buf, read_data, read_data_len));
 }
 
 void test_recv_all_handles_partial_read() {
-    // TODO
-    assert_true(false);
+    wrap_recv = mock_recv;
+    char *read_data = "hello partial read";
+    size_t read_1_len = 5;
+    size_t read_2_len = strlen(read_data) + 1 - read_1_len;
+    size_t total_len = read_1_len + read_2_len;
+    will_return(mock_recv, read_data);
+    will_return(mock_recv, read_1_len);
+    will_return(mock_recv, read_data + read_1_len);
+    will_return(mock_recv, read_2_len);
+    char buf[BUFSIZ] = {0};
+    return_code_t return_code = recv_all(MOCK_SOCKET, buf, total_len, 0);
+    assert_true(SUCCESS == return_code);
+    assert_true(0 == strncmp(buf, read_data, total_len));
 }
+
+// TODO test socket timeout?
+
+// TODO test failure invalid input

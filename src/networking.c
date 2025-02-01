@@ -351,7 +351,7 @@ end:
 return_code_t recv_all(int sockfd, void *buf, size_t len, int flags) {
     // TODO placeholder for mocking
     wrap_recv(sockfd, buf, len, flags);
-    return FAILURE_INVALID_INPUT;
+    return SUCCESS;
 }
 
 return_code_t send_all(int sockfd, void *buf, size_t len, int flags) {
