@@ -20,7 +20,7 @@
         typedef struct in6_addr IN6_ADDR;
     #endif
     typedef ssize_t (*recv_func_t)(int, void *, size_t, int);
-    typedef ssize_t (*send_func_t)(int, void *, size_t, int);
+    typedef ssize_t (*send_func_t)(int, const void *, size_t, int);
 #endif
 #include <stdint.h>
 #include "include/return_codes.h"
