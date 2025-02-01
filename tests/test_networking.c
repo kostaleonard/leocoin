@@ -874,30 +874,50 @@ void test_recv_all_fails_on_invalid_input() {
 }
 
 #ifdef _WIN32
-    int mock_send(SOCKET sockfd, char *buf, int len, int flags) {
+    int mock_send(SOCKET sockfd, const char *buf, int len, int flags) {
 #else
-    ssize_t mock_send(int sockfd, void *buf, size_t len, int flags) {
+    ssize_t mock_send(int sockfd, const void *buf, size_t len, int flags) {
 #endif
     ssize_t n = mock_type(ssize_t);
     return n;
 }
 
 void test_send_all_sends_data_to_socket() {
-    // TODO
-    assert_true(false);
+    wrap_send = mock_send;
+    char *send_data = "hello send";
+    size_t send_data_len = strlen(send_data) + 1;
+    will_return(mock_send, send_data_len);
+    return_code_t return_code = send_all(
+        MOCK_SOCKET, send_data, send_data_len, 0);
+    assert_true(SUCCESS == return_code);
 }
 
 void test_send_all_handles_partial_write() {
-    // TODO
-    assert_true(false);
+    wrap_send = mock_send;
+    char *send_data = "hello send";
+    size_t send_data_len = strlen(send_data) + 1;
+    size_t send_1_len = 5;
+    size_t send_2_len = send_data_len - send_1_len;
+    will_return(mock_send, send_1_len);
+    will_return(mock_send, send_2_len);
+    return_code_t return_code = send_all(
+        MOCK_SOCKET, send_data, send_data_len, 0);
+    assert_true(SUCCESS == return_code);
 }
 
 void test_send_all_fails_on_send_error() {
-    // TODO
-    assert_true(false);
+    wrap_send = mock_send;
+    char *send_data = "hello send";
+    size_t send_data_len = strlen(send_data) + 1;
+    size_t send_1_len = 5;
+    will_return(mock_send, send_1_len);
+    will_return(mock_send, -1);
+    return_code_t return_code = send_all(
+        MOCK_SOCKET, send_data, send_data_len, 0);
+    assert_true(FAILURE_NETWORK_FUNCTION == return_code);
 }
 
 void test_send_all_fails_on_invalid_input() {
-    // TODO
-    assert_true(false);
+    return_code_t return_code = send_all(MOCK_SOCKET, NULL, 100, 0);
+    assert_true(FAILURE_INVALID_INPUT == return_code);
 }

@@ -81,6 +81,7 @@ end:
 
 int teardown() {
     wrap_recv = recv;
+    wrap_send = send;
     return 0;
 }
 
