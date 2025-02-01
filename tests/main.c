@@ -281,6 +281,10 @@ int main(int argc, char **argv) {
         cmocka_unit_test(test_recv_all_handles_partial_read),
         cmocka_unit_test(test_recv_all_fails_on_recv_error),
         cmocka_unit_test(test_recv_all_fails_on_invalid_input),
+        cmocka_unit_test(test_send_all_sends_data_to_socket),
+        cmocka_unit_test(test_send_all_handles_partial_write),
+        cmocka_unit_test(test_send_all_fails_on_send_error),
+        cmocka_unit_test(test_send_all_fails_on_invalid_input),
         // test_sleep.h
         cmocka_unit_test(test_sleep_microseconds_pauses_program),
         // test_peer_discovery_thread.h

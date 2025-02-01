@@ -872,3 +872,32 @@ void test_recv_all_fails_on_invalid_input() {
     return_code_t return_code = recv_all(MOCK_SOCKET, NULL, 100, 0);
     assert_true(FAILURE_INVALID_INPUT == return_code);
 }
+
+#ifdef _WIN32
+    int mock_send(SOCKET sockfd, char *buf, int len, int flags) {
+#else
+    ssize_t mock_send(int sockfd, void *buf, size_t len, int flags) {
+#endif
+    ssize_t n = mock_type(ssize_t);
+    return n;
+}
+
+void test_send_all_sends_data_to_socket() {
+    // TODO
+    assert_true(false);
+}
+
+void test_send_all_handles_partial_write() {
+    // TODO
+    assert_true(false);
+}
+
+void test_send_all_fails_on_send_error() {
+    // TODO
+    assert_true(false);
+}
+
+void test_send_all_fails_on_invalid_input() {
+    // TODO
+    assert_true(false);
+}

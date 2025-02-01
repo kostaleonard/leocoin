@@ -67,4 +67,12 @@ void test_recv_all_fails_on_recv_error();
 
 void test_recv_all_fails_on_invalid_input();
 
+void test_send_all_sends_data_to_socket();
+
+void test_send_all_handles_partial_write();
+
+void test_send_all_fails_on_send_error();
+
+void test_send_all_fails_on_invalid_input();
+
 #endif  // TESTS_TEST_NETWORKING_H_

@@ -10,6 +10,7 @@
 #include "include/networking.h"
 
 recv_func_t wrap_recv = recv;
+send_func_t wrap_send = send;
 
 return_code_t command_header_serialize(
     command_header_t *command_header,

@@ -8,6 +8,7 @@
     #include <winsock2.h>
     #include <ws2tcpip.h>
     typedef int (*recv_func_t)(SOCKET, char *, int, int);
+    typedef int (*send_func_t)(SOCKET, const char *, int, int);
 #else
     #include <arpa/inet.h>
     #include <netdb.h>
@@ -19,6 +20,7 @@
         typedef struct in6_addr IN6_ADDR;
     #endif
     typedef ssize_t (*recv_func_t)(int, void *, size_t, int);
+    typedef ssize_t (*send_func_t)(int, void *, size_t, int);
 #endif
 #include <stdint.h>
 #include "include/return_codes.h"
@@ -28,9 +30,9 @@
 #define COMMAND_ERROR_MESSAGE_LEN 256
 #define COMMAND_HEADER_INITIALIZER {{'L', 'E', 'O', '\0'}, 0, 0}
 
-//TODO make sure everyone uses wrap_recv
-// This function is for mocking in unit tests.
+// These functions are for mocking in unit tests.
 extern recv_func_t wrap_recv;
+extern send_func_t wrap_send;
 
 /**
  * @brief Represents valid command codes for network communication.
