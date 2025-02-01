@@ -59,10 +59,12 @@ void test_command_send_peer_list_deserialize_fails_on_invalid_command();
 
 void test_command_send_peer_list_deserialize_fails_on_invalid_input();
 
-void test_recv_all_mock_works();
-
 void test_recv_all_reads_data_from_socket();
 
 void test_recv_all_handles_partial_read();
+
+void test_recv_all_fails_on_recv_error();
+
+void test_recv_all_fails_on_invalid_input();
 
 #endif  // TESTS_TEST_NETWORKING_H_

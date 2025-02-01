@@ -349,9 +349,24 @@ end:
 }
 
 return_code_t recv_all(int sockfd, void *buf, size_t len, int flags) {
-    // TODO placeholder for mocking
-    wrap_recv(sockfd, buf, len, flags);
-    return SUCCESS;
+    return_code_t return_code = SUCCESS;
+    if (NULL == buf) {
+        return_code = FAILURE_INVALID_INPUT;
+        goto end;
+    }
+    size_t total_bytes_read = 0;
+    while (total_bytes_read != len) {
+        int bytes_read = wrap_recv(
+            sockfd, buf + total_bytes_read, len - total_bytes_read, flags);
+        if (bytes_read < 0) {
+            return_code = FAILURE_NETWORK_FUNCTION;
+            goto end;
+        }
+        total_bytes_read += bytes_read;
+    }
+    
+end:
+    return return_code;
 }
 
 return_code_t send_all(int sockfd, void *buf, size_t len, int flags) {

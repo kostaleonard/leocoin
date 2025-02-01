@@ -816,25 +816,12 @@ void test_command_send_peer_list_deserialize_fails_on_invalid_input() {
 // TODO needs to be cross-platform
 // TODO this may need to go in a header file somewhere so that other files have access. But maybe not.
 int mock_recv(SOCKET sockfd, char *buf, int len, int flags) {
-    printf("Hello mocked recv\n");
     void *recv_data = mock_type(void *);
     ssize_t n = mock_type(ssize_t);
     if (n > 0) {
         memcpy(buf, recv_data, n);
     }
     return n;
-}
-
-// TODO this is just a placeholder so I understand how mocking works
-// TODO remove? Maybe keep as kind of documentation
-void test_recv_all_mock_works() {
-    wrap_recv = mock_recv;
-    will_return(mock_recv, "value 1");
-    will_return(mock_recv, 8);
-    char buf[10] = {0};
-    int bytes = recv_all(99, buf, 10, 0);
-    printf("buf: %s\n", buf);
-    printf("bytes read: %d\n", bytes);
 }
 
 void test_recv_all_reads_data_from_socket() {
@@ -852,9 +839,9 @@ void test_recv_all_reads_data_from_socket() {
 void test_recv_all_handles_partial_read() {
     wrap_recv = mock_recv;
     char *read_data = "hello partial read";
+    size_t total_len = strlen(read_data) + 1;
     size_t read_1_len = 5;
-    size_t read_2_len = strlen(read_data) + 1 - read_1_len;
-    size_t total_len = read_1_len + read_2_len;
+    size_t read_2_len = total_len - read_1_len;
     will_return(mock_recv, read_data);
     will_return(mock_recv, read_1_len);
     will_return(mock_recv, read_data + read_1_len);
@@ -865,6 +852,25 @@ void test_recv_all_handles_partial_read() {
     assert_true(0 == strncmp(buf, read_data, total_len));
 }
 
-// TODO test socket timeout?
+void test_recv_all_fails_on_recv_error() {
+    wrap_recv = mock_recv;
+    char *read_data = "hello recv error";
+    size_t total_len = strlen(read_data) + 1;
+    size_t read_1_len = 5;
+    will_return(mock_recv, read_data);
+    will_return(mock_recv, read_1_len);
+    will_return(mock_recv, NULL);
+    will_return(mock_recv, -1);
+    char buf[BUFSIZ] = {0};
+    return_code_t return_code = recv_all(MOCK_SOCKET, buf, total_len, 0);
+    assert_true(FAILURE_NETWORK_FUNCTION == return_code);
+}
+
+void test_recv_all_fails_on_invalid_input() {
+    return_code_t return_code = recv_all(MOCK_SOCKET, NULL, 100, 0);
+    assert_true(FAILURE_INVALID_INPUT == return_code);
+}
+
+// TODO test socket timeout? In this case, don't mock recv
 
 // TODO test failure invalid input
