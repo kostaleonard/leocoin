@@ -813,9 +813,11 @@ void test_command_send_peer_list_deserialize_fails_on_invalid_input() {
     linked_list_destroy(peer_info_list);
 }
 
-// TODO needs to be cross-platform
-// TODO this may need to go in a header file somewhere so that other files have access. But maybe not.
-int mock_recv(SOCKET sockfd, char *buf, int len, int flags) {
+#ifdef _WIN32
+    int mock_recv(SOCKET sockfd, char *buf, int len, int flags) {
+#else
+    ssize_t mock_recv(int sockfd, void *buf, size_t len, int flags) {
+#endif
     void *recv_data = mock_type(void *);
     ssize_t n = mock_type(ssize_t);
     if (n > 0) {
@@ -870,7 +872,3 @@ void test_recv_all_fails_on_invalid_input() {
     return_code_t return_code = recv_all(MOCK_SOCKET, NULL, 100, 0);
     assert_true(FAILURE_INVALID_INPUT == return_code);
 }
-
-// TODO test socket timeout? In this case, don't mock recv
-
-// TODO test failure invalid input

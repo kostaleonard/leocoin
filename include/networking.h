@@ -18,7 +18,7 @@
     #ifndef IN6_ADDR
         typedef struct in6_addr IN6_ADDR;
     #endif
-    typedef ssize_t (*recv_func_t)(int, void *, ssize_t, int);
+    typedef ssize_t (*recv_func_t)(int, void *, size_t, int);
 #endif
 #include <stdint.h>
 #include "include/return_codes.h"
