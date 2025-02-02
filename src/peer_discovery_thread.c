@@ -6,6 +6,8 @@
 #include "include/peer_discovery_thread.h"
 #include "include/sleep.h"
 
+// TODO replace all send/recv calls with send_all/recv_all
+
 return_code_t *discover_peers(discover_peers_args_t *args) {
     return_code_t return_code = SUCCESS;
     #ifdef _WIN32

@@ -1,7 +1,3 @@
-/**
- * @brief Contains networking functions.
- */
-
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>

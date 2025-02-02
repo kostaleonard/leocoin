@@ -24,6 +24,7 @@
 
 #define LISTEN_BACKLOG 5
 
+// TODO replace all send/recv calls with send_all/recv_all
 // TODO make helper functions and put them in peer_discovery.h for testing
 
 // TODO note in docstring that listen_fd is already bound and listening
@@ -33,7 +34,7 @@ return_code_t accept_peer_discovery_requests(
     bool print_progress
 ) {
     return_code_t return_code = SUCCESS;
-    while (true) {
+    while (true) { // TODO maybe move this to the caller so this function only accepts one peer? And the caller can decide whether they want to loop
         struct sockaddr_in6 client_addr = {0};
         socklen_t client_len = sizeof(client_addr);
         int conn_fd = accept(
