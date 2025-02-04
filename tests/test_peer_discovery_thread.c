@@ -10,11 +10,63 @@
 #include "include/peer_discovery.h"
 #include "include/peer_discovery_thread.h"
 #include "include/sleep.h"
+#include "tests/mocks.h"
 #include "tests/test_peer_discovery_thread.h"
 
 // TODO other tests
 
 void test_discover_peers_exits_when_should_stop_is_set() {
+    wrap_recv = mock_recv;
+    linked_list_t *peer_info_list = NULL;
+    return_code_t return_code = linked_list_create(
+        &peer_info_list, free, compare_peer_info_t);
+    assert_true(SUCCESS == return_code);
+    peer_info_t *peer1 = calloc(1, sizeof(peer_info_t));
+    peer1->listen_addr.sin6_family = AF_INET6;
+    peer1->listen_addr.sin6_port = 12345;
+    peer1->listen_addr.sin6_flowinfo = 0;
+    ((unsigned char *)(&peer1->listen_addr.sin6_addr))[
+        sizeof(IN6_ADDR) - 1] = 1;
+    peer1->listen_addr.sin6_scope_id = 0;
+    peer1->last_connected = 100;
+    peer_info_t *peer2 = calloc(1, sizeof(peer_info_t));
+    peer2->listen_addr.sin6_family = AF_INET6;
+    peer2->listen_addr.sin6_port = 23456;
+    peer2->listen_addr.sin6_flowinfo = 0;
+    ((unsigned char *)(&peer2->listen_addr.sin6_addr))[0] = 0xfe;
+    ((unsigned char *)(&peer2->listen_addr.sin6_addr))[1] = 0x80;
+    ((unsigned char *)(&peer2->listen_addr.sin6_addr))[
+        sizeof(IN6_ADDR) - 1] = 1;
+    peer2->listen_addr.sin6_scope_id = 0;
+    peer2->last_connected = 200;
+    return_code = linked_list_prepend(peer_info_list, peer2);
+    assert_true(SUCCESS == return_code);
+    return_code = linked_list_prepend(peer_info_list, peer1);
+    assert_true(SUCCESS == return_code);
+    command_send_peer_list_t command_send_peer_list = {0};
+    memcpy(
+        command_send_peer_list.header.command_prefix,
+        COMMAND_PREFIX,
+        COMMAND_PREFIX_LEN);
+    command_send_peer_list.header.command = COMMAND_SEND_PEER_LIST;
+    return_code = peer_info_list_serialize(
+        peer_info_list,
+        &command_send_peer_list.peer_list_data,
+        &command_send_peer_list.peer_list_data_len);
+    assert_true(SUCCESS == return_code);
+    unsigned char *command_send_peer_list_buffer = NULL;
+    uint64_t command_send_peer_list_buffer_len = 0;
+    return_code = command_send_peer_list_serialize(
+        &command_send_peer_list,
+        &command_send_peer_list_buffer,
+        &command_send_peer_list_buffer_len);
+    assert_true(SUCCESS == return_code);
+    will_return_maybe(mock_recv, command_send_peer_list_buffer);
+    will_return_maybe(mock_recv, command_send_peer_list_buffer_len); // TODO I don't think multiple will_return_maybe will alternate correctly
+    wrap_send = mock_send;
+    size_t send_size = sizeof(command_register_peer_t);
+    // TODO you could also just make send return 1 every time, which would send any message with no errors
+    will_return_maybe(mock_send, send_size);
     discover_peers_args_t args = {0};
     args.peer_discovery_bootstrap_server_addr.sin6_addr.s6_addr[
         sizeof(IN6_ADDR) - 1] = 1;
@@ -24,7 +76,7 @@ void test_discover_peers_exits_when_should_stop_is_set() {
     args.peer_addr.sin6_family = AF_INET6;
     args.peer_addr.sin6_port = htons(23456);
     args.communication_interval_seconds = 5;
-    return_code_t return_code = linked_list_create(
+    return_code = linked_list_create(
         &args.peer_info_list, free, compare_peer_info_t);
     assert_true(SUCCESS == return_code);
     pthread_mutex_init(&args.peer_info_list_mutex, NULL);
@@ -37,7 +89,7 @@ void test_discover_peers_exits_when_should_stop_is_set() {
     pthread_mutex_init(&args.exit_ready_mutex, NULL);
     pthread_t thread;
     pthread_create(&thread, NULL, discover_peers_pthread_wrapper, &args);
-    // Pause for a short period to allow the miner to start.
+    // Pause for a short period to allow the thread to start.
     sleep_microseconds(100000);
     *args.should_stop = true;
     struct timespec ts;
