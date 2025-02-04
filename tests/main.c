@@ -82,6 +82,7 @@ end:
 int teardown() {
     wrap_recv = recv;
     wrap_send = send;
+    wrap_connect = connect;
     return 0;
 }
 

@@ -16,6 +16,7 @@
 // TODO other tests
 
 void test_discover_peers_exits_when_should_stop_is_set() {
+    wrap_connect = mock_connect;
     wrap_recv = mock_recv;
     linked_list_t *peer_info_list = NULL;
     return_code_t return_code = linked_list_create(

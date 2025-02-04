@@ -21,3 +21,12 @@
     ssize_t n = mock_type(ssize_t);
     return n;
 }
+
+#ifdef _WIN32
+    int mock_connect(SOCKET sockfd, const struct sockaddr *addr, int addrlen) {
+#else
+    int mock_connect(
+        int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
+#endif
+    return 0;
+}

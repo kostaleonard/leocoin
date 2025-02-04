@@ -27,13 +27,14 @@ return_code_t *discover_peers(discover_peers_args_t *args) {
             return_code = FAILURE_NETWORK_FUNCTION;
             goto end;
         }
-        if (SUCCESS != connect(
+        if (SUCCESS != wrap_connect(
             client_fd,
             (struct sockaddr *)&args->peer_discovery_bootstrap_server_addr,
             sizeof(struct sockaddr_in6))) {
             return_code = FAILURE_NETWORK_FUNCTION;
             goto end;
         }
+        printf("Connected\n");
         command_header_t command_header = COMMAND_HEADER_INITIALIZER;
         command_header.command = COMMAND_REGISTER_PEER;
         command_register_peer_t command_register_peer = {0};
@@ -50,10 +51,12 @@ return_code_t *discover_peers(discover_peers_args_t *args) {
         uint64_t send_buf_size = 0;
         command_register_peer_serialize(
             &command_register_peer, &send_buf, &send_buf_size);
-        send(client_fd, (char *)send_buf, send_buf_size, 0);
+        printf("Sending\n");
+        wrap_send(client_fd, (char *)send_buf, send_buf_size, 0);
+        printf("Sent\n");
         free(send_buf);
         char recv_buf[BUFSIZ] = {0};
-        int bytes_received = recv(
+        int bytes_received = wrap_recv(
             client_fd, recv_buf, sizeof(command_header_t), 0);
         if (bytes_received < 0) {
             return_code = FAILURE_NETWORK_FUNCTION;
@@ -67,7 +70,7 @@ return_code_t *discover_peers(discover_peers_args_t *args) {
         if (COMMAND_SEND_PEER_LIST != command_header.command) {
             printf("Expected send peer list command\n");
         }
-        bytes_received = recv(
+        bytes_received = wrap_recv(
             client_fd,
             recv_buf + sizeof(command_header_t),
             command_header.command_len,

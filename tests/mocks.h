@@ -24,4 +24,11 @@
     ssize_t mock_send(int sockfd, const void *buf, size_t len, int flags);
 #endif
 
+#ifdef _WIN32
+    int mock_connect(SOCKET sockfd, const struct sockaddr *addr, int addrlen);
+#else
+    int mock_connect(
+        int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+#endif
+
 #endif  // TEST_MOCKS_H_

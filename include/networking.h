@@ -9,6 +9,7 @@
     #include <ws2tcpip.h>
     typedef int (*recv_func_t)(SOCKET, char *, int, int);
     typedef int (*send_func_t)(SOCKET, const char *, int, int);
+    typedef int (*connect_func_t)(SOCKET, const struct sockaddr *, int);
 #else
     #include <arpa/inet.h>
     #include <netdb.h>
@@ -21,6 +22,7 @@
     #endif
     typedef ssize_t (*recv_func_t)(int, void *, size_t, int);
     typedef ssize_t (*send_func_t)(int, const void *, size_t, int);
+    typedef int (*connect_func_t)(int, const struct sockaddr *, socklen_t);
 #endif
 #include <stdint.h>
 #include "include/return_codes.h"
@@ -33,6 +35,7 @@
 // These functions are for mocking in unit tests.
 extern recv_func_t wrap_recv;
 extern send_func_t wrap_send;
+extern connect_func_t wrap_connect;
 
 /**
  * @brief Represents valid command codes for network communication.

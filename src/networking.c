@@ -7,6 +7,7 @@
 
 recv_func_t wrap_recv = recv;
 send_func_t wrap_send = send;
+connect_func_t wrap_connect = connect;
 
 return_code_t command_header_serialize(
     command_header_t *command_header,
