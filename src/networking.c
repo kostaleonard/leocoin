@@ -354,10 +354,8 @@ return_code_t recv_all(int sockfd, void *buf, size_t len, int flags) {
     }
     size_t total_bytes_recvd = 0;
     while (total_bytes_recvd != len) {
-        // TODO uncomment
-        // int bytes_recvd = wrap_recv(
-        //     sockfd, buf + total_bytes_recvd, len - total_bytes_recvd, flags);
-        int bytes_recvd = 1;
+        int bytes_recvd = wrap_recv(
+            sockfd, buf + total_bytes_recvd, len - total_bytes_recvd, flags);
         if (bytes_recvd < 0) {
             return_code = FAILURE_NETWORK_FUNCTION;
             goto end;
@@ -376,10 +374,8 @@ return_code_t send_all(int sockfd, void *buf, size_t len, int flags) {
     }
     size_t total_bytes_sent = 0;
     while (total_bytes_sent != len) {
-        // TODO uncomment
-        // int bytes_sent = wrap_send(
-        //     sockfd, buf + total_bytes_sent, len - total_bytes_sent, flags);
-        int bytes_sent = 1;
+        int bytes_sent = wrap_send(
+            sockfd, buf + total_bytes_sent, len - total_bytes_sent, flags);
         if (bytes_sent < 0) {
             return_code = FAILURE_NETWORK_FUNCTION;
             goto end;

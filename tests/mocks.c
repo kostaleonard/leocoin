@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "tests/mocks.h"
 
 #ifdef _WIN32

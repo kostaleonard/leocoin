@@ -8,6 +8,14 @@
 
 return_code_t discover_peers_once(discover_peers_args_t *args) {
     return_code_t return_code = SUCCESS;
+    // TODO I feel like setup and cleanup don't go in this function. They should just go in the main function for every networked program
+    #ifdef _WIN32
+        WSADATA wsaData;
+        if (0 != WSAStartup(MAKEWORD(2, 2), &wsaData)) {
+            return_code = FAILURE_NETWORK_FUNCTION;
+            goto end;
+        }
+    #endif
     if (args->print_progress) {
         printf("Attempting to connect to peer discovery server.\n");
     }
@@ -23,7 +31,9 @@ return_code_t discover_peers_once(discover_peers_args_t *args) {
         return_code = FAILURE_NETWORK_FUNCTION;
         goto end;
     }
-    printf("Connected\n");
+    if (args->print_progress) {
+        printf("Connected.\n");
+    }
     command_header_t command_header = COMMAND_HEADER_INITIALIZER;
     command_header.command = COMMAND_REGISTER_PEER;
     command_register_peer_t command_register_peer = {0};
@@ -42,40 +52,39 @@ return_code_t discover_peers_once(discover_peers_args_t *args) {
         &command_register_peer, &send_buf, &send_buf_size);
     if (SUCCESS != return_code) {
         printf("Command register peer serialize failed\n");
+        goto end;
     }
-    printf("Sending\n");
-    send_all(client_fd, (char *)send_buf, send_buf_size, 0);
-    printf("Sent\n");
+    return_code = send_all(client_fd, (char *)send_buf, send_buf_size, 0);
+    if (SUCCESS != return_code) {
+        goto end;
+    }
     free(send_buf);
     char recv_buf[BUFSIZ] = {0};
-    int bytes_received = recv_all(
-        client_fd, recv_buf, sizeof(command_header_t), 0);
-    if (bytes_received < 0) {
-        return_code = FAILURE_NETWORK_FUNCTION;
+    return_code = recv_all(client_fd, recv_buf, sizeof(command_header_t), 0);
+    if (SUCCESS != return_code) {
         goto end;
     }
     return_code = command_header_deserialize(
-        &command_header, (unsigned char *)recv_buf, bytes_received);
+        &command_header, (unsigned char *)recv_buf, sizeof(command_header_t));
     if (SUCCESS != return_code) {
-        printf("Header deserialization error\n");
+        printf("Header deserialization error: %d\n", return_code);
     }
     if (COMMAND_SEND_PEER_LIST != command_header.command) {
         printf("Expected send peer list command\n");
     }
-    bytes_received = recv_all(
+    return_code = recv_all(
         client_fd,
         recv_buf + sizeof(command_header_t),
         command_header.command_len,
         0);
-    if (bytes_received < 0) {
-        return_code = FAILURE_NETWORK_FUNCTION;
+    if (SUCCESS != return_code) {
         goto end;
     }
     command_send_peer_list_t command_send_peer_list = {0};
     return_code = command_send_peer_list_deserialize(
         &command_send_peer_list,
         (unsigned char *)recv_buf,
-        bytes_received + sizeof(command_header_t));
+        sizeof(command_header_t) + command_header.command_len);
     if (SUCCESS != return_code) {
         printf("Send peer list deserialization error\n");
     }
@@ -116,18 +125,14 @@ return_code_t discover_peers_once(discover_peers_args_t *args) {
         close(client_fd);
     #endif
 end:
+    #ifdef _WIN32
+        WSACleanup();
+    #endif
     return return_code;
 }
 
 return_code_t *discover_peers(discover_peers_args_t *args) {
     return_code_t return_code = SUCCESS;
-    #ifdef _WIN32
-        WSADATA wsaData;
-        if (0 != WSAStartup(MAKEWORD(2, 2), &wsaData)) {
-            return_code = FAILURE_NETWORK_FUNCTION;
-            goto end;
-        }
-    #endif
     bool should_stop = *args->should_stop;
     while (!should_stop) {
         return_code = discover_peers_once(args);
@@ -142,14 +147,10 @@ return_code_t *discover_peers(discover_peers_args_t *args) {
             printf("Stopping peer discovery.\n");
         }
     }
-    #ifdef _WIN32
-        WSACleanup();
-    #endif
     pthread_mutex_lock(&args->exit_ready_mutex);
     *args->exit_ready = true;
     pthread_cond_signal(&args->exit_ready_cond);
     pthread_mutex_unlock(&args->exit_ready_mutex);
-end:
     return_code_t *return_code_ptr = malloc(sizeof(return_code_t));
     *return_code_ptr = return_code;
     return return_code_ptr;
