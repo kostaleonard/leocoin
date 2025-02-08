@@ -120,7 +120,7 @@ void test_discover_peers_exits_when_should_stop_is_set() {
         &args.peer_info_list, free, compare_peer_info_t);
     assert_true(SUCCESS == return_code);
     pthread_mutex_init(&args.peer_info_list_mutex, NULL);
-    args.print_progress = true;
+    args.print_progress = false;
     atomic_bool should_stop = false;
     args.should_stop = &should_stop;
     bool exit_ready = false;
@@ -149,9 +149,6 @@ void test_discover_peers_exits_when_should_stop_is_set() {
     pthread_join(thread, &retval);
     return_code_t *return_code_ptr = (return_code_t *)retval;
     assert_true(NULL != return_code_ptr);
-    // TODO the return code is failure because of networking. Do we want to check it here? Does the return code matter if we know networking will fail?
-    // return_code = *return_code_ptr;
-    // assert_true(SUCCESS == return_code);
     free(return_code_ptr);
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
