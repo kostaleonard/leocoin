@@ -139,7 +139,7 @@ return_code_t *discover_peers(discover_peers_args_t *args) {
         if (SUCCESS != return_code && args->print_progress) {
             printf("Error in peer discovery; retrying\n");
         }
-        sleep_microseconds(args->communication_interval_seconds * 1000000);
+        sleep_microseconds(args->communication_interval_microseconds);
         should_stop = *args->should_stop;
     }
     if (should_stop) {

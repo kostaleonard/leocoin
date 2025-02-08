@@ -76,8 +76,8 @@ void test_discover_peers_once_updates_peer_list() {
     args.peer_discovery_bootstrap_server_addr.sin6_port = htons(12345);
     args.peer_addr.sin6_addr.s6_addr[sizeof(IN6_ADDR) - 1] = 1;
     args.peer_addr.sin6_family = AF_INET6;
-    args.peer_addr.sin6_port = htons(23456);
-    args.communication_interval_seconds = 5;
+    args.peer_addr.sin6_port = htons(23456); // TODO are these supposed to be network byte order? Coming out wrong in the output.
+    args.communication_interval_microseconds = 100000;
     return_code = linked_list_create(
         &args.peer_info_list, free, compare_peer_info_t);
     assert_true(SUCCESS == return_code);
@@ -99,6 +99,7 @@ void test_discover_peers_once_updates_peer_list() {
 }
 
 void test_discover_peers_exits_when_should_stop_is_set() {
+    wrap_connect = mock_connect;
     discover_peers_args_t args = {0};
     args.peer_discovery_bootstrap_server_addr.sin6_addr.s6_addr[
         sizeof(IN6_ADDR) - 1] = 1;
@@ -107,7 +108,7 @@ void test_discover_peers_exits_when_should_stop_is_set() {
     args.peer_addr.sin6_addr.s6_addr[sizeof(IN6_ADDR) - 1] = 1;
     args.peer_addr.sin6_family = AF_INET6;
     args.peer_addr.sin6_port = htons(23456);
-    args.communication_interval_seconds = 5;
+    args.communication_interval_microseconds = 10000;
     return_code_t return_code = linked_list_create(
         &args.peer_info_list, free, compare_peer_info_t);
     assert_true(SUCCESS == return_code);

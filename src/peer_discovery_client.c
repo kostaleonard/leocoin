@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
     }
     args.peer_addr.sin6_family = AF_INET6;
     args.peer_addr.sin6_port = htons(peer_port);
-    args.communication_interval_seconds = communication_interval_seconds;
+    args.communication_interval_microseconds = communication_interval_seconds * 1e6;
     return_code = linked_list_create(
         &args.peer_info_list, free, compare_peer_info_t);
     if (SUCCESS != return_code) {
