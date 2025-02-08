@@ -6,6 +6,7 @@
 #include "include/peer_discovery_thread.h"
 #include "include/sleep.h"
 
+// TODO go through the logic in this function one more time--I think it's almost there
 return_code_t discover_peers_once(discover_peers_args_t *args) {
     return_code_t return_code = SUCCESS;
     // TODO I feel like setup and cleanup don't go in this function. They should just go in the main function for every networked program
@@ -51,14 +52,13 @@ return_code_t discover_peers_once(discover_peers_args_t *args) {
     return_code = command_register_peer_serialize(
         &command_register_peer, &send_buf, &send_buf_size);
     if (SUCCESS != return_code) {
-        printf("Command register peer serialize failed\n");
         goto end;
     }
     return_code = send_all(client_fd, (char *)send_buf, send_buf_size, 0);
+    free(send_buf);
     if (SUCCESS != return_code) {
         goto end;
     }
-    free(send_buf);
     char recv_buf[BUFSIZ] = {0};
     return_code = recv_all(client_fd, recv_buf, sizeof(command_header_t), 0);
     if (SUCCESS != return_code) {
@@ -67,11 +67,13 @@ return_code_t discover_peers_once(discover_peers_args_t *args) {
     return_code = command_header_deserialize(
         &command_header, (unsigned char *)recv_buf, sizeof(command_header_t));
     if (SUCCESS != return_code) {
-        printf("Header deserialization error: %d\n", return_code);
+        goto end;
     }
     if (COMMAND_SEND_PEER_LIST != command_header.command) {
-        printf("Expected send peer list command\n");
+        return_code = FAILURE_INVALID_COMMAND;
+        goto end;
     }
+    // TODO buffer overflow potential? need to malloc recv_buf, and maybe have a max size for peer list?
     return_code = recv_all(
         client_fd,
         recv_buf + sizeof(command_header_t),
@@ -86,7 +88,7 @@ return_code_t discover_peers_once(discover_peers_args_t *args) {
         (unsigned char *)recv_buf,
         sizeof(command_header_t) + command_header.command_len);
     if (SUCCESS != return_code) {
-        printf("Send peer list deserialization error\n");
+        goto end;
     }
     if (0 != pthread_mutex_lock(&args->peer_info_list_mutex)) {
         return_code = FAILURE_PTHREAD_FUNCTION;
@@ -101,23 +103,33 @@ return_code_t discover_peers_once(discover_peers_args_t *args) {
         goto end;
     }
     if (SUCCESS != return_code) {
-        printf("Peer list deserialization error\n");
+        goto end;
     }
-    for (node_t *node = args->peer_info_list->head;
-        NULL != node;
-        node = node->next) {
-        peer_info_t *peer = (peer_info_t *)node->data;
-        char ip_str[INET6_ADDRSTRLEN];
-        if (NULL == inet_ntop(
-            AF_INET6,
-            &peer->listen_addr.sin6_addr,
-            ip_str,
-            sizeof(ip_str))) {
-            perror("inet_ntop");
+    if (args->print_progress) {
+        if (0 != pthread_mutex_lock(&args->peer_info_list_mutex)) {
+            return_code = FAILURE_PTHREAD_FUNCTION;
+            goto end;
         }
-        int port = ntohs(peer->listen_addr.sin6_port);
-        printf("IPv6 Address: %s\n", ip_str);
-        printf("Port: %d\n", port);
+        for (node_t *node = args->peer_info_list->head;
+            NULL != node;
+            node = node->next) {
+            peer_info_t *peer = (peer_info_t *)node->data;
+            char ip_str[INET6_ADDRSTRLEN];
+            if (NULL == inet_ntop(
+                AF_INET6,
+                &peer->listen_addr.sin6_addr,
+                ip_str,
+                sizeof(ip_str))) {
+                perror("inet_ntop");
+            }
+            int port = ntohs(peer->listen_addr.sin6_port);
+            printf("IPv6 Address: %s\n", ip_str);
+            printf("Port: %d\n", port);
+        }
+        if (0 != pthread_mutex_unlock(&args->peer_info_list_mutex)) {
+            return_code = FAILURE_PTHREAD_FUNCTION;
+            goto end;
+        }
     }
     #ifdef _WIN32
         closesocket(client_fd);

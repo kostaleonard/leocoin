@@ -25,7 +25,7 @@ void test_discover_peers_once_updates_peer_list() {
     assert_true(SUCCESS == return_code);
     peer_info_t *peer1 = calloc(1, sizeof(peer_info_t));
     peer1->listen_addr.sin6_family = AF_INET6;
-    peer1->listen_addr.sin6_port = 12345;
+    peer1->listen_addr.sin6_port = htons(12345);
     peer1->listen_addr.sin6_flowinfo = 0;
     ((unsigned char *)(&peer1->listen_addr.sin6_addr))[
         sizeof(IN6_ADDR) - 1] = 1;
@@ -33,7 +33,7 @@ void test_discover_peers_once_updates_peer_list() {
     peer1->last_connected = 100;
     peer_info_t *peer2 = calloc(1, sizeof(peer_info_t));
     peer2->listen_addr.sin6_family = AF_INET6;
-    peer2->listen_addr.sin6_port = 23456;
+    peer2->listen_addr.sin6_port = htons(23456);
     peer2->listen_addr.sin6_flowinfo = 0;
     ((unsigned char *)(&peer2->listen_addr.sin6_addr))[0] = 0xfe;
     ((unsigned char *)(&peer2->listen_addr.sin6_addr))[1] = 0x80;
@@ -76,13 +76,13 @@ void test_discover_peers_once_updates_peer_list() {
     args.peer_discovery_bootstrap_server_addr.sin6_port = htons(12345);
     args.peer_addr.sin6_addr.s6_addr[sizeof(IN6_ADDR) - 1] = 1;
     args.peer_addr.sin6_family = AF_INET6;
-    args.peer_addr.sin6_port = htons(23456); // TODO are these supposed to be network byte order? Coming out wrong in the output.
+    args.peer_addr.sin6_port = htons(23456);
     args.communication_interval_microseconds = 100000;
     return_code = linked_list_create(
         &args.peer_info_list, free, compare_peer_info_t);
     assert_true(SUCCESS == return_code);
     pthread_mutex_init(&args.peer_info_list_mutex, NULL);
-    args.print_progress = true;
+    args.print_progress = false;
     atomic_bool should_stop = false;
     args.should_stop = &should_stop;
     bool exit_ready = false;
@@ -91,7 +91,14 @@ void test_discover_peers_once_updates_peer_list() {
     pthread_mutex_init(&args.exit_ready_mutex, NULL);
     return_code = discover_peers_once(&args);
     assert_true(SUCCESS == return_code);
-    // TODO check peer list
+    uint64_t length = 0;
+    return_code = linked_list_length(args.peer_info_list, &length);
+    assert_true(SUCCESS == return_code);
+    assert_true(2 == length);
+    peer_info_t *p = (peer_info_t *)args.peer_info_list->head->data;
+    assert_true(0 == compare_peer_info_t(peer1, p));
+    p = (peer_info_t *)args.peer_info_list->head->next->data;
+    assert_true(0 == compare_peer_info_t(peer2, p));
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
     pthread_mutex_destroy(&args.peer_info_list_mutex);
@@ -128,8 +135,7 @@ void test_discover_peers_exits_when_should_stop_is_set() {
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
     // One second timeout.
-    // TODO this is slow
-    ts.tv_sec += 10;
+    ts.tv_sec += 1;
     pthread_mutex_lock(&args.exit_ready_mutex);
     while (!*args.exit_ready) {
         int result = pthread_cond_timedwait(
