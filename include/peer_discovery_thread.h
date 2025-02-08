@@ -76,10 +76,19 @@ typedef struct discover_peers_args_t {
 } discover_peers_args_t;
 
 /**
+ * @brief Retrieves the list of active peers from the server one time.
+ * 
+ * @param args Contains the function arguments. See discover_peers_args_t for
+ * details.
+ * @return return_code_t A return code indicating success or failure.
+ */
+return_code_t discover_peers_once(discover_peers_args_t *args);
+
+/**
  * @brief Maintains the list of active peers until interrupted.
  * 
  * @param args Contains the function arguments. See discover_peers_args_t for
- * details
+ * details.
  * @return return_code_t A pointer to a return code indicating success or
  * failure. Callers must free.
  */

@@ -290,6 +290,7 @@ int main(int argc, char **argv) {
         // test_sleep.h
         cmocka_unit_test(test_sleep_microseconds_pauses_program),
         // test_peer_discovery_thread.h
+        cmocka_unit_test(test_discover_peers_once_updates_peer_list),
         cmocka_unit_test(test_discover_peers_exits_when_should_stop_is_set),
     };
     return_code = cmocka_run_group_tests(tests, NULL, teardown);
