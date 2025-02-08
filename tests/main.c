@@ -98,6 +98,13 @@ int main(int argc, char **argv) {
         printf("Failed to create output directory\n");
         goto end;
     }
+    #ifdef _WIN32
+        WSADATA wsaData;
+        if (0 != WSAStartup(MAKEWORD(2, 2), &wsaData)) {
+            return_code = FAILURE_NETWORK_FUNCTION;
+            goto end;
+        }
+    #endif
     const struct CMUnitTest tests[] = {
         // test_linked_list.h
         cmocka_unit_test(test_linked_list_create_gives_linked_list),
@@ -294,6 +301,9 @@ int main(int argc, char **argv) {
         cmocka_unit_test_teardown(test_discover_peers_exits_when_should_stop_is_set, teardown),
     };
     return_code = cmocka_run_group_tests(tests, NULL, teardown);
+    #ifdef _WIN32
+        WSACleanup();
+    #endif
 end:
     return return_code;
 }

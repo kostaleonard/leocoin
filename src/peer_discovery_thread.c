@@ -9,14 +9,6 @@
 // TODO go through the logic in this function one more time--I think it's almost there
 return_code_t discover_peers_once(discover_peers_args_t *args) {
     return_code_t return_code = SUCCESS;
-    // TODO I feel like setup and cleanup don't go in this function. They should just go in the main function for every networked program
-    #ifdef _WIN32
-        WSADATA wsaData;
-        if (0 != WSAStartup(MAKEWORD(2, 2), &wsaData)) {
-            return_code = FAILURE_NETWORK_FUNCTION;
-            goto end;
-        }
-    #endif
     if (args->print_progress) {
         printf("Attempting to connect to peer discovery server.\n");
     }
@@ -137,9 +129,6 @@ return_code_t discover_peers_once(discover_peers_args_t *args) {
         close(client_fd);
     #endif
 end:
-    #ifdef _WIN32
-        WSACleanup();
-    #endif
     return return_code;
 }
 

@@ -195,13 +195,6 @@ return_code_t run_peer_discovery_bootstrap_server(uint16_t port) {
     if (SUCCESS != return_code) {
         goto end;
     }
-    #ifdef _WIN32
-        WSADATA wsaData;
-        if (0 != WSAStartup(MAKEWORD(2, 2), &wsaData)) {
-            return_code = FAILURE_NETWORK_FUNCTION;
-            goto end;
-        }
-    #endif
     int listen_fd = socket(AF_INET6, SOCK_STREAM, 0);
     if (listen_fd < 0) {
         return_code = FAILURE_NETWORK_FUNCTION;
@@ -244,7 +237,6 @@ return_code_t run_peer_discovery_bootstrap_server(uint16_t port) {
     return_code = accept_peer_discovery_requests(listen_fd, peer_list, true);
     #ifdef _WIN32
         closesocket(listen_fd);
-        WSACleanup();
     # else
         close(listen_fd);
     #endif
@@ -254,6 +246,13 @@ end:
 
 int main(int argc, char **argv) {
     return_code_t return_code = SUCCESS;
+    #ifdef _WIN32
+        WSADATA wsaData;
+        if (0 != WSAStartup(MAKEWORD(2, 2), &wsaData)) {
+            return_code = FAILURE_NETWORK_FUNCTION;
+            goto end;
+        }
+    #endif
     if (2 != argc) {
         fprintf(stderr, "Usage: %s [port]\n", argv[0]);
         return_code = FAILURE_INVALID_COMMAND_LINE_ARGS;
@@ -261,6 +260,9 @@ int main(int argc, char **argv) {
     }
     uint16_t port = strtol(argv[1], NULL, 10);
     return_code = run_peer_discovery_bootstrap_server(port);
+    #ifdef _WIN32
+        WSACleanup();
+    #endif
 end:
     return return_code;
 }

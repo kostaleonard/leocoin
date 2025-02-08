@@ -53,6 +53,13 @@ int main(int argc, char **argv) {
                 goto end;
         }
     }
+    #ifdef _WIN32
+        WSADATA wsaData;
+        if (0 != WSAStartup(MAKEWORD(2, 2), &wsaData)) {
+            return_code = FAILURE_NETWORK_FUNCTION;
+            goto end;
+        }
+    #endif
     char *server_ipv6_address = argv[1];
     uint16_t server_port = strtol(argv[2], NULL, 10);
     char *peer_ipv6_address = argv[3];
@@ -110,6 +117,9 @@ int main(int argc, char **argv) {
     pthread_mutex_destroy(&args.peer_info_list_mutex);
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
+    #ifdef _WIN32
+        WSACleanup();
+    #endif
 end:
     return return_code;
 }
