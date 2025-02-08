@@ -38,14 +38,17 @@ return_code_t discover_peers_once(discover_peers_args_t *args) {
     command_register_peer.sin6_scope_id = args->peer_addr.sin6_scope_id;
     unsigned char *send_buf = NULL;
     uint64_t send_buf_size = 0;
-    command_register_peer_serialize(
+    return_code = command_register_peer_serialize(
         &command_register_peer, &send_buf, &send_buf_size);
+    if (SUCCESS != return_code) {
+        printf("Command register peer serialize failed\n");
+    }
     printf("Sending\n");
-    wrap_send(client_fd, (char *)send_buf, send_buf_size, 0);
+    send_all(client_fd, (char *)send_buf, send_buf_size, 0);
     printf("Sent\n");
     free(send_buf);
     char recv_buf[BUFSIZ] = {0};
-    int bytes_received = wrap_recv(
+    int bytes_received = recv_all(
         client_fd, recv_buf, sizeof(command_header_t), 0);
     if (bytes_received < 0) {
         return_code = FAILURE_NETWORK_FUNCTION;
@@ -59,7 +62,7 @@ return_code_t discover_peers_once(discover_peers_args_t *args) {
     if (COMMAND_SEND_PEER_LIST != command_header.command) {
         printf("Expected send peer list command\n");
     }
-    bytes_received = wrap_recv(
+    bytes_received = recv_all(
         client_fd,
         recv_buf + sizeof(command_header_t),
         command_header.command_len,
@@ -135,7 +138,6 @@ return_code_t *discover_peers(discover_peers_args_t *args) {
         should_stop = *args->should_stop;
     }
     if (should_stop) {
-        return_code = FAILURE_STOPPED_EARLY;
         if (args->print_progress) {
             printf("Stopping peer discovery.\n");
         }

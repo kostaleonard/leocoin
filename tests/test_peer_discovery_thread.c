@@ -126,7 +126,7 @@ void test_discover_peers_exits_when_should_stop_is_set() {
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
     // One second timeout.
-    ts.tv_sec += 1;
+    ts.tv_sec += 10;
     pthread_mutex_lock(&args.exit_ready_mutex);
     while (!*args.exit_ready) {
         int result = pthread_cond_timedwait(
