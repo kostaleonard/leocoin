@@ -286,19 +286,25 @@ int main(int argc, char **argv) {
             test_command_send_peer_list_deserialize_fails_on_invalid_command),
         cmocka_unit_test(
             test_command_send_peer_list_deserialize_fails_on_invalid_input),
-        cmocka_unit_test_teardown(test_recv_all_reads_data_from_socket, teardown),
+        cmocka_unit_test_teardown(
+            test_recv_all_reads_data_from_socket, teardown),
         cmocka_unit_test_teardown(test_recv_all_handles_partial_read, teardown),
         cmocka_unit_test_teardown(test_recv_all_fails_on_recv_error, teardown),
-        cmocka_unit_test_teardown(test_recv_all_fails_on_invalid_input, teardown),
+        cmocka_unit_test_teardown(
+            test_recv_all_fails_on_invalid_input, teardown),
         cmocka_unit_test_teardown(test_send_all_sends_data_to_socket, teardown),
-        cmocka_unit_test_teardown(test_send_all_handles_partial_write, teardown),
+        cmocka_unit_test_teardown(
+            test_send_all_handles_partial_write, teardown),
         cmocka_unit_test_teardown(test_send_all_fails_on_send_error, teardown),
-        cmocka_unit_test_teardown(test_send_all_fails_on_invalid_input, teardown),
+        cmocka_unit_test_teardown(
+            test_send_all_fails_on_invalid_input, teardown),
         // test_sleep.h
         cmocka_unit_test(test_sleep_microseconds_pauses_program),
         // test_peer_discovery_thread.h
-        cmocka_unit_test_teardown(test_discover_peers_once_updates_peer_list, teardown),
-        cmocka_unit_test_teardown(test_discover_peers_exits_when_should_stop_is_set, teardown),
+        cmocka_unit_test_teardown(
+            test_discover_peers_once_updates_peer_list, teardown),
+        cmocka_unit_test_teardown(
+            test_discover_peers_exits_when_should_stop_is_set, teardown),
     };
     return_code = cmocka_run_group_tests(tests, NULL, teardown);
     #ifdef _WIN32

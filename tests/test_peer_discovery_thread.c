@@ -13,8 +13,6 @@
 #include "tests/mocks.h"
 #include "tests/test_peer_discovery_thread.h"
 
-// TODO other tests
-
 void test_discover_peers_once_updates_peer_list() {
     wrap_connect = mock_connect;
     wrap_recv = mock_recv;
@@ -65,8 +63,11 @@ void test_discover_peers_once_updates_peer_list() {
     assert_true(SUCCESS == return_code);
     will_return(mock_recv, command_send_peer_list_buffer);
     will_return(mock_recv, sizeof(command_header_t));
-    will_return(mock_recv, command_send_peer_list_buffer + sizeof(command_header_t));
-    will_return(mock_recv, command_send_peer_list_buffer_len - sizeof(command_header_t));
+    will_return(
+        mock_recv, command_send_peer_list_buffer + sizeof(command_header_t));
+    will_return(
+        mock_recv,
+        command_send_peer_list_buffer_len - sizeof(command_header_t));
     size_t send_size = sizeof(command_register_peer_t);
     will_return(mock_send, send_size);
     discover_peers_args_t args = {0};

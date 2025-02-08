@@ -31,4 +31,4 @@
         int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 #endif
 
-#endif  // TEST_MOCKS_H_
+#endif  // TESTS_MOCKS_H_
