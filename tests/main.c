@@ -304,6 +304,8 @@ int main(int argc, char **argv) {
         cmocka_unit_test_teardown(
             test_discover_peers_once_updates_peer_list, teardown),
         cmocka_unit_test_teardown(
+            test_discover_peers_once_receives_large_peer_list, teardown),
+        cmocka_unit_test_teardown(
             test_discover_peers_exits_when_should_stop_is_set, teardown),
     };
     return_code = cmocka_run_group_tests(tests, NULL, teardown);
