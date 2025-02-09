@@ -6,7 +6,6 @@
 #include "include/peer_discovery_thread.h"
 #include "include/sleep.h"
 
-// TODO go through the logic in this function one more time--I think it's almost there
 return_code_t discover_peers_once(discover_peers_args_t *args) {
     return_code_t return_code = SUCCESS;
     if (args->print_progress) {
@@ -152,10 +151,8 @@ return_code_t *discover_peers(discover_peers_args_t *args) {
         sleep_microseconds(args->communication_interval_microseconds);
         should_stop = *args->should_stop;
     }
-    if (should_stop) {
-        if (args->print_progress) {
-            printf("Stopping peer discovery.\n");
-        }
+    if (args->print_progress) {
+        printf("Stopping peer discovery.\n");
     }
     pthread_mutex_lock(&args->exit_ready_mutex);
     *args->exit_ready = true;

@@ -126,7 +126,7 @@ void test_discover_peers_once_receives_large_peer_list() {
         peer1->last_connected = 100;
         return_code = linked_list_prepend(peer_info_list, peer1);
         assert_true(SUCCESS == return_code);
-    }    
+    }
     command_send_peer_list_t command_send_peer_list = {0};
     memcpy(
         command_send_peer_list.header.command_prefix,

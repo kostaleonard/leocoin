@@ -24,17 +24,13 @@
 
 #define LISTEN_BACKLOG 5
 
-// TODO replace all send/recv calls with send_all/recv_all
-// TODO make helper functions and put them in peer_discovery.h for testing
-
-// TODO note in docstring that listen_fd is already bound and listening
 return_code_t accept_peer_discovery_requests(
     int listen_fd,
     linked_list_t *peer_list,
     bool print_progress
 ) {
     return_code_t return_code = SUCCESS;
-    while (true) { // TODO maybe move this to the caller so this function only accepts one peer? And the caller can decide whether they want to loop
+    while (true) {
         struct sockaddr_in6 client_addr = {0};
         socklen_t client_len = sizeof(client_addr);
         int conn_fd = accept(
@@ -74,9 +70,7 @@ return_code_t accept_peer_discovery_requests(
                 client_hostname,
                 client_addr_str);
         }
-        // TODO this is the core of what we need to test--the actual network communication
         char recv_buf[BUFSIZ] = {0};
-        // TODO send and recv calls should be send_all_with_alloc/recv_all_with_alloc or whatever we come up with
         int bytes_received = recv(
             conn_fd, recv_buf, sizeof(command_header_t), 0);
         if (bytes_received < 0) {
@@ -187,7 +181,6 @@ end:
     return return_code;
 }
 
-// TODO put this function in a pthread wrapper to allow for graceful shutdown, then unit test
 return_code_t run_peer_discovery_bootstrap_server(uint16_t port) {
     return_code_t return_code = SUCCESS;
     linked_list_t *peer_list = NULL;
@@ -220,7 +213,6 @@ return_code_t run_peer_discovery_bootstrap_server(uint16_t port) {
         return_code = FAILURE_NETWORK_FUNCTION;
         goto end;
     }
-    // TODO set timeout on socket
     struct sockaddr_in6 server_addr = {0};
     server_addr.sin6_family = AF_INET6;
     server_addr.sin6_addr = in6addr_any;
