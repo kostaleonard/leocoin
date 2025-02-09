@@ -7,6 +7,7 @@
 #ifndef INCLUDE_PEER_DISCOVERY_BOOTSTRAP_SERVER_THREAD_H_
 #define INCLUDE_PEER_DISCOVERY_BOOTSTRAP_SERVER_THREAD_H_
 #define LISTEN_BACKLOG 5
+#define DEFAULT_PEER_KEEPALIVE_SECONDS 60
 #include <pthread.h>
 #include <stdatomic.h>
 #ifdef _WIN32
@@ -37,7 +38,7 @@ typedef struct handle_peer_discovery_requests_args_t {
 
 return_code_t handle_peer_discovery_requests_once(handle_peer_discovery_requests_args_t *args, int conn_fd);
 
-return_code_t handle_peer_discovery_requests(handle_peer_discovery_requests_args_t *args);
+return_code_t *handle_peer_discovery_requests(handle_peer_discovery_requests_args_t *args);
 
 void *handle_peer_discovery_requests_pthread_wrapper(void *args);
 
