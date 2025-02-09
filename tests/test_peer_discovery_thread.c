@@ -2,6 +2,7 @@
  * @brief Tests peer_discovery_thread.c.
  */
 
+#include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -103,7 +104,10 @@ void test_discover_peers_once_updates_peer_list() {
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
     pthread_mutex_destroy(&args.peer_info_list_mutex);
+    linked_list_destroy(peer_info_list);
     linked_list_destroy(args.peer_info_list);
+    free(command_send_peer_list.peer_list_data);
+    free(command_send_peer_list_buffer);
 }
 
 void test_discover_peers_once_receives_large_peer_list() {
@@ -183,11 +187,15 @@ void test_discover_peers_once_receives_large_peer_list() {
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
     pthread_mutex_destroy(&args.peer_info_list_mutex);
+    linked_list_destroy(peer_info_list);
     linked_list_destroy(args.peer_info_list);
+    free(command_send_peer_list.peer_list_data);
+    free(command_send_peer_list_buffer);
 }
 
 void test_discover_peers_exits_when_should_stop_is_set() {
     wrap_connect = mock_connect;
+    wrap_send = mock_send_fail;
     discover_peers_args_t args = {0};
     args.peer_discovery_bootstrap_server_addr.sin6_addr.s6_addr[
         sizeof(IN6_ADDR) - 1] = 1;

@@ -90,19 +90,24 @@ return_code_t discover_peers_once(discover_peers_args_t *args) {
     if (SUCCESS != return_code) {
         goto end;
     }
+    free(recv_buf);
+    linked_list_t *new_peer_info_list = NULL;
+    return_code = peer_info_list_deserialize(
+        &new_peer_info_list,
+        command_send_peer_list.peer_list_data,
+        command_send_peer_list.peer_list_data_len);
+    if (SUCCESS != return_code) {
+        goto end;
+    }
+    free(command_send_peer_list.peer_list_data);
     if (0 != pthread_mutex_lock(&args->peer_info_list_mutex)) {
         return_code = FAILURE_PTHREAD_FUNCTION;
         goto end;
     }
-    return_code = peer_info_list_deserialize(
-        &args->peer_info_list,
-        command_send_peer_list.peer_list_data,
-        command_send_peer_list.peer_list_data_len);
+    linked_list_destroy(args->peer_info_list);
+    args->peer_info_list = new_peer_info_list;
     if (0 != pthread_mutex_unlock(&args->peer_info_list_mutex)) {
         return_code = FAILURE_PTHREAD_FUNCTION;
-        goto end;
-    }
-    if (SUCCESS != return_code) {
         goto end;
     }
     if (args->print_progress) {

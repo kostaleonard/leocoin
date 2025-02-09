@@ -19,9 +19,21 @@
 #endif
 
 #ifdef _WIN32
+    int mock_recv_fail(SOCKET sockfd, char *buf, int len, int flags);
+#else
+    ssize_t mock_recv_fail(int sockfd, void *buf, size_t len, int flags);
+#endif
+
+#ifdef _WIN32
     int mock_send(SOCKET sockfd, const char *buf, int len, int flags);
 #else
     ssize_t mock_send(int sockfd, const void *buf, size_t len, int flags);
+#endif
+
+#ifdef _WIN32
+    int mock_send_fail(SOCKET sockfd, const char *buf, int len, int flags);
+#else
+    ssize_t mock_send_fail(int sockfd, const void *buf, size_t len, int flags);
 #endif
 
 #ifdef _WIN32
