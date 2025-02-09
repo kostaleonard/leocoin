@@ -51,7 +51,11 @@ return_code_t discover_peers_once(discover_peers_args_t *args) {
     if (SUCCESS != return_code) {
         goto end;
     }
-    char recv_buf[BUFSIZ] = {0};
+    char *recv_buf = calloc(sizeof(command_header_t), 1);
+    if (NULL == recv_buf) {
+        return_code = FAILURE_COULD_NOT_MALLOC;
+        goto end;
+    }
     return_code = recv_all(client_fd, recv_buf, sizeof(command_header_t), 0);
     if (SUCCESS != return_code) {
         goto end;
@@ -65,7 +69,12 @@ return_code_t discover_peers_once(discover_peers_args_t *args) {
         return_code = FAILURE_INVALID_COMMAND;
         goto end;
     }
-    // TODO buffer overflow potential? need to malloc recv_buf, and maybe have a max size for peer list?
+    recv_buf = realloc(
+        recv_buf, sizeof(command_header_t) + command_header.command_len);
+    if (NULL == recv_buf) {
+        return_code = FAILURE_COULD_NOT_MALLOC;
+        goto end;
+    }
     return_code = recv_all(
         client_fd,
         recv_buf + sizeof(command_header_t),

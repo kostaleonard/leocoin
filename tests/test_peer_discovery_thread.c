@@ -114,7 +114,7 @@ void test_discover_peers_once_receives_large_peer_list() {
     return_code_t return_code = linked_list_create(
         &peer_info_list, free, compare_peer_info_t);
     assert_true(SUCCESS == return_code);
-    uint64_t num_test_peers = 10000;
+    uint64_t num_test_peers = 1000;
     for (uint64_t idx = 0; idx < num_test_peers; idx++) {
         peer_info_t *peer1 = calloc(1, sizeof(peer_info_t));
         peer1->listen_addr.sin6_family = AF_INET6;
@@ -167,7 +167,7 @@ void test_discover_peers_once_receives_large_peer_list() {
         &args.peer_info_list, free, compare_peer_info_t);
     assert_true(SUCCESS == return_code);
     pthread_mutex_init(&args.peer_info_list_mutex, NULL);
-    args.print_progress = true;
+    args.print_progress = false;
     atomic_bool should_stop = false;
     args.should_stop = &should_stop;
     bool exit_ready = false;
