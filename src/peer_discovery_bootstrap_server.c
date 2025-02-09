@@ -24,6 +24,10 @@
 
 #define LISTEN_BACKLOG 5
 
+return_code_t accept_peer_discovery_requests_once() {
+    // TODO
+}
+
 return_code_t accept_peer_discovery_requests(
     int listen_fd,
     linked_list_t *peer_list,
