@@ -1,13 +1,13 @@
-/**
- * @brief Contains networking functions.
- */
-
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "include/endian.h"
 #include "include/networking.h"
+
+recv_func_t wrap_recv = recv;
+send_func_t wrap_send = send;
+connect_func_t wrap_connect = connect;
 
 return_code_t command_header_serialize(
     command_header_t *command_header,
@@ -342,6 +342,46 @@ return_code_t command_send_peer_list_deserialize(
         command_send_peer_list,
         &deserialized_command_send_peer_list,
         sizeof(command_send_peer_list_t));
+end:
+    return return_code;
+}
+
+return_code_t recv_all(int sockfd, void *buf, size_t len, int flags) {
+    return_code_t return_code = SUCCESS;
+    if (NULL == buf) {
+        return_code = FAILURE_INVALID_INPUT;
+        goto end;
+    }
+    size_t total_bytes_recvd = 0;
+    while (total_bytes_recvd != len) {
+        int bytes_recvd = wrap_recv(
+            sockfd, buf + total_bytes_recvd, len - total_bytes_recvd, flags);
+        if (bytes_recvd < 0) {
+            return_code = FAILURE_NETWORK_FUNCTION;
+            goto end;
+        }
+        total_bytes_recvd += bytes_recvd;
+    }
+end:
+    return return_code;
+}
+
+return_code_t send_all(int sockfd, void *buf, size_t len, int flags) {
+    return_code_t return_code = SUCCESS;
+    if (NULL == buf) {
+        return_code = FAILURE_INVALID_INPUT;
+        goto end;
+    }
+    size_t total_bytes_sent = 0;
+    while (total_bytes_sent != len) {
+        int bytes_sent = wrap_send(
+            sockfd, buf + total_bytes_sent, len - total_bytes_sent, flags);
+        if (bytes_sent < 0) {
+            return_code = FAILURE_NETWORK_FUNCTION;
+            goto end;
+        }
+        total_bytes_sent += bytes_sent;
+    }
 end:
     return return_code;
 }

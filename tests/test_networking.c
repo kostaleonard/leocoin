@@ -6,6 +6,7 @@
 #include "include/networking.h"
 #include "include/peer_discovery.h"
 #include "tests/test_networking.h"
+#include "tests/mocks.h"
 
 void test_command_header_serialize_fails_on_invalid_input() {
     command_header_t command_header = COMMAND_HEADER_INITIALIZER;
@@ -809,4 +810,91 @@ void test_command_send_peer_list_deserialize_fails_on_invalid_input() {
     free(buffer);
     free(peer_list_buffer);
     linked_list_destroy(peer_info_list);
+}
+
+void test_recv_all_reads_data_from_socket() {
+    wrap_recv = mock_recv;
+    char *read_data = "hello recv";
+    size_t read_data_len = strlen(read_data) + 1;
+    will_return(mock_recv, read_data);
+    will_return(mock_recv, read_data_len);
+    char buf[BUFSIZ] = {0};
+    return_code_t return_code = recv_all(MOCK_SOCKET, buf, read_data_len, 0);
+    assert_true(SUCCESS == return_code);
+    assert_true(0 == strncmp(buf, read_data, read_data_len));
+}
+
+void test_recv_all_handles_partial_read() {
+    wrap_recv = mock_recv;
+    char *read_data = "hello partial read";
+    size_t total_len = strlen(read_data) + 1;
+    size_t read_1_len = 5;
+    size_t read_2_len = total_len - read_1_len;
+    will_return(mock_recv, read_data);
+    will_return(mock_recv, read_1_len);
+    will_return(mock_recv, read_data + read_1_len);
+    will_return(mock_recv, read_2_len);
+    char buf[BUFSIZ] = {0};
+    return_code_t return_code = recv_all(MOCK_SOCKET, buf, total_len, 0);
+    assert_true(SUCCESS == return_code);
+    assert_true(0 == strncmp(buf, read_data, total_len));
+}
+
+void test_recv_all_fails_on_recv_error() {
+    wrap_recv = mock_recv;
+    char *read_data = "hello recv error";
+    size_t total_len = strlen(read_data) + 1;
+    size_t read_1_len = 5;
+    will_return(mock_recv, read_data);
+    will_return(mock_recv, read_1_len);
+    will_return(mock_recv, NULL);
+    will_return(mock_recv, -1);
+    char buf[BUFSIZ] = {0};
+    return_code_t return_code = recv_all(MOCK_SOCKET, buf, total_len, 0);
+    assert_true(FAILURE_NETWORK_FUNCTION == return_code);
+}
+
+void test_recv_all_fails_on_invalid_input() {
+    return_code_t return_code = recv_all(MOCK_SOCKET, NULL, 100, 0);
+    assert_true(FAILURE_INVALID_INPUT == return_code);
+}
+
+void test_send_all_sends_data_to_socket() {
+    wrap_send = mock_send;
+    char *send_data = "hello send";
+    size_t send_data_len = strlen(send_data) + 1;
+    will_return(mock_send, send_data_len);
+    return_code_t return_code = send_all(
+        MOCK_SOCKET, send_data, send_data_len, 0);
+    assert_true(SUCCESS == return_code);
+}
+
+void test_send_all_handles_partial_write() {
+    wrap_send = mock_send;
+    char *send_data = "hello send";
+    size_t send_data_len = strlen(send_data) + 1;
+    size_t send_1_len = 5;
+    size_t send_2_len = send_data_len - send_1_len;
+    will_return(mock_send, send_1_len);
+    will_return(mock_send, send_2_len);
+    return_code_t return_code = send_all(
+        MOCK_SOCKET, send_data, send_data_len, 0);
+    assert_true(SUCCESS == return_code);
+}
+
+void test_send_all_fails_on_send_error() {
+    wrap_send = mock_send;
+    char *send_data = "hello send";
+    size_t send_data_len = strlen(send_data) + 1;
+    size_t send_1_len = 5;
+    will_return(mock_send, send_1_len);
+    will_return(mock_send, -1);
+    return_code_t return_code = send_all(
+        MOCK_SOCKET, send_data, send_data_len, 0);
+    assert_true(FAILURE_NETWORK_FUNCTION == return_code);
+}
+
+void test_send_all_fails_on_invalid_input() {
+    return_code_t return_code = send_all(MOCK_SOCKET, NULL, 100, 0);
+    assert_true(FAILURE_INVALID_INPUT == return_code);
 }

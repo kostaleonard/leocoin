@@ -34,11 +34,11 @@
  * The function will register this address with the bootstrap server and other
  * peers. Peers will attempt to connect to this address to share newly mined
  * blocks and other messages.
- * @param communication_interval_seconds The number of seconds between attempts
- * to connect to the server to keep alive peer_addr as an active entry in the
- * server's list of peers. Callers should choose this value based on how long
- * the server keeps peer addresses active. A sensible choice is one third of the
- * server's keep alive time.
+ * @param communication_interval_microseconds The number of microseconds between
+ * attempts to connect to the server to keep alive peer_addr as an active entry
+ * in the server's list of peers. Callers should choose this value based on how
+ * long the server keeps peer addresses active. A sensible choice is one third
+ * of the server's keep alive time.
  * @param peer_info_list The list of peers that this peer is aware of. Each
  * entry is a peer_info_t struct. This function communicates with the bootstrap
  * server and other peers to maintain the list of active peers. Other threads
@@ -65,7 +65,7 @@
 typedef struct discover_peers_args_t {
     struct sockaddr_in6 peer_discovery_bootstrap_server_addr;
     struct sockaddr_in6 peer_addr;
-    uint64_t communication_interval_seconds;
+    uint64_t communication_interval_microseconds;
     linked_list_t *peer_info_list;
     pthread_mutex_t peer_info_list_mutex;
     bool print_progress;
@@ -76,10 +76,19 @@ typedef struct discover_peers_args_t {
 } discover_peers_args_t;
 
 /**
+ * @brief Retrieves the list of active peers from the server one time.
+ * 
+ * @param args Contains the function arguments. See discover_peers_args_t for
+ * details.
+ * @return return_code_t A return code indicating success or failure.
+ */
+return_code_t discover_peers_once(discover_peers_args_t *args);
+
+/**
  * @brief Maintains the list of active peers until interrupted.
  * 
  * @param args Contains the function arguments. See discover_peers_args_t for
- * details
+ * details.
  * @return return_code_t A pointer to a return code indicating success or
  * failure. Callers must free.
  */

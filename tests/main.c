@@ -12,6 +12,7 @@
     #include <sys/stat.h>
     #include <unistd.h>
 #endif
+#include "include/networking.h"
 #include "include/return_codes.h"
 #include "tests/file_paths.h"
 #include "tests/test_linked_list.h"
@@ -24,6 +25,7 @@
 #include "tests/test_peer_discovery.h"
 #include "tests/test_networking.h"
 #include "tests/test_sleep.h"
+#include "tests/test_peer_discovery_thread.h"
 
 int _unlink_callback(
     const char *fpath,
@@ -77,6 +79,13 @@ end:
     return return_code;
 }
 
+int teardown() {
+    wrap_recv = recv;
+    wrap_send = send;
+    wrap_connect = connect;
+    return 0;
+}
+
 int main(int argc, char **argv) {
     char output_directory[TESTS_MAX_PATH] = {0};
     return_code_t return_code = get_output_directory(output_directory);
@@ -89,6 +98,13 @@ int main(int argc, char **argv) {
         printf("Failed to create output directory\n");
         goto end;
     }
+    #ifdef _WIN32
+        WSADATA wsaData;
+        if (0 != WSAStartup(MAKEWORD(2, 2), &wsaData)) {
+            return_code = FAILURE_NETWORK_FUNCTION;
+            goto end;
+        }
+    #endif
     const struct CMUnitTest tests[] = {
         // test_linked_list.h
         cmocka_unit_test(test_linked_list_create_gives_linked_list),
@@ -270,10 +286,32 @@ int main(int argc, char **argv) {
             test_command_send_peer_list_deserialize_fails_on_invalid_command),
         cmocka_unit_test(
             test_command_send_peer_list_deserialize_fails_on_invalid_input),
+        cmocka_unit_test_teardown(
+            test_recv_all_reads_data_from_socket, teardown),
+        cmocka_unit_test_teardown(test_recv_all_handles_partial_read, teardown),
+        cmocka_unit_test_teardown(test_recv_all_fails_on_recv_error, teardown),
+        cmocka_unit_test_teardown(
+            test_recv_all_fails_on_invalid_input, teardown),
+        cmocka_unit_test_teardown(test_send_all_sends_data_to_socket, teardown),
+        cmocka_unit_test_teardown(
+            test_send_all_handles_partial_write, teardown),
+        cmocka_unit_test_teardown(test_send_all_fails_on_send_error, teardown),
+        cmocka_unit_test_teardown(
+            test_send_all_fails_on_invalid_input, teardown),
         // test_sleep.h
         cmocka_unit_test(test_sleep_microseconds_pauses_program),
+        // test_peer_discovery_thread.h
+        cmocka_unit_test_teardown(
+            test_discover_peers_once_updates_peer_list, teardown),
+        cmocka_unit_test_teardown(
+            test_discover_peers_once_receives_large_peer_list, teardown),
+        cmocka_unit_test_teardown(
+            test_discover_peers_exits_when_should_stop_is_set, teardown),
     };
-    return_code = cmocka_run_group_tests(tests, NULL, NULL);
+    return_code = cmocka_run_group_tests(tests, NULL, teardown);
+    #ifdef _WIN32
+        WSACleanup();
+    #endif
 end:
     return return_code;
 }
