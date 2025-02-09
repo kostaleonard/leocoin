@@ -1,7 +1,3 @@
-/**
- * @brief Tests peer_discovery_thread.c.
- */
-
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
