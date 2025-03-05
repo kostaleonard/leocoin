@@ -1,5 +1,8 @@
+#include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "include/networking.h"
 #include "include/peer_discovery.h"
 #include "include/peer_discovery_bootstrap_server_thread.h"
@@ -92,6 +95,7 @@ void test_handle_one_peer_discovery_request_adds_to_peer_list() {
     return_code = linked_list_find(peer_info_list, &peer3, &found_node);
     assert_true(SUCCESS == return_code);
     assert_true(NULL != found_node);
+    free(command_register_peer_buffer);
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
     pthread_mutex_destroy(&args.peer_info_list_mutex);
@@ -186,6 +190,7 @@ void test_handle_one_peer_discovery_request_updates_peer_keepalive() {
     peer_info_t *found_peer = (peer_info_t *)found_node->data;
     bool connected_in_last_second = time(NULL) - found_peer->last_connected < 1;
     assert_true(connected_in_last_second);
+    free(command_register_peer_buffer);
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
     pthread_mutex_destroy(&args.peer_info_list_mutex);
@@ -277,6 +282,7 @@ void test_handle_one_peer_discovery_request_removes_expired_peers() {
     return_code = linked_list_find(peer_info_list, &peer3, &found_node);
     assert_true(SUCCESS == return_code);
     assert_true(NULL != found_node);
+    free(command_register_peer_buffer);
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
     pthread_mutex_destroy(&args.peer_info_list_mutex);

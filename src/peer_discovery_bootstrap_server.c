@@ -3,6 +3,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "include/peer_discovery.h"
 #include "include/peer_discovery_bootstrap_server_thread.h"
 
