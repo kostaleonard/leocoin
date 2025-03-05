@@ -2,8 +2,6 @@
  * @brief Contains functions for the peer discovery thread.
  */
 
-// TODO rename to peer_discovery_client_thread.h?
-
 #ifndef INCLUDE_PEER_DISCOVERY_THREAD_H_
 #define INCLUDE_PEER_DISCOVERY_THREAD_H_
 #define DEFAULT_COMMUNICATION_INTERVAL_SECONDS 20

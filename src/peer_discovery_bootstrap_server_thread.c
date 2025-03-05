@@ -150,7 +150,6 @@ return_code_t handle_one_peer_discovery_request(
         free(peer_info);
     }
     time_t current_time = time(NULL);
-    // TODO we are assuming a linked list and also writing linked list code--add issue
     node_t *prev = NULL;
     node_t *node = args->peer_info_list->head;
     while (NULL != node) {
@@ -160,8 +159,7 @@ return_code_t handle_one_peer_discovery_request(
         if (peer_expired) {
             if (NULL == prev) {
                 args->peer_info_list->head = node->next;
-            }
-            else {
+            } else {
                 prev->next = node->next;
             }
             if (args->print_progress) {
@@ -200,8 +198,7 @@ return_code_t handle_one_peer_discovery_request(
         }
         if (NULL == node) {
             node = args->peer_info_list->head;
-        }
-        else {
+        } else {
             prev = node;
             node = node->next;
         }
@@ -278,7 +275,9 @@ return_code_t *handle_peer_discovery_requests(
         goto end;
     }
     if (bind(
-        listen_fd, (struct sockaddr *)&args->peer_discovery_bootstrap_server_addr, sizeof(args->peer_discovery_bootstrap_server_addr)) < 0) {
+        listen_fd,
+        (struct sockaddr *)&args->peer_discovery_bootstrap_server_addr,
+        sizeof(args->peer_discovery_bootstrap_server_addr)) < 0) {
         return_code = FAILURE_NETWORK_FUNCTION;
         goto end;
     }
@@ -365,7 +364,9 @@ end:
 }
 
 void *handle_peer_discovery_requests_pthread_wrapper(void *args) {
-    handle_peer_discovery_requests_args_t *server_args = (handle_peer_discovery_requests_args_t *)args;
-    return_code_t *return_code_ptr = handle_peer_discovery_requests(server_args);
+    handle_peer_discovery_requests_args_t *server_args =
+        (handle_peer_discovery_requests_args_t *)args;
+    return_code_t *return_code_ptr = handle_peer_discovery_requests(
+        server_args);
     return (void *)return_code_ptr;
 }
