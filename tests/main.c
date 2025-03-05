@@ -315,6 +315,9 @@ int main(int argc, char **argv) {
             test_handle_one_peer_discovery_request_updates_peer_keepalive,
             teardown),
         cmocka_unit_test_teardown(
+            test_handle_one_peer_discovery_request_removes_expired_peers,
+            teardown),
+        cmocka_unit_test_teardown(
             test_handle_peer_discovery_requests_exits_when_should_stop_is_set,
             teardown),
     };

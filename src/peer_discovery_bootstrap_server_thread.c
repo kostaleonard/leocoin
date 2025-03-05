@@ -3,7 +3,8 @@
 #include "include/peer_discovery.h"
 #include "include/peer_discovery_bootstrap_server_thread.h"
 
-return_code_t handle_one_peer_discovery_request(handle_peer_discovery_requests_args_t *args, int conn_fd) {
+return_code_t handle_one_peer_discovery_request(
+    handle_peer_discovery_requests_args_t *args, int conn_fd) {
     return_code_t return_code = SUCCESS;
     char *recv_buf = calloc(sizeof(command_header_t), 1);
     if (NULL == recv_buf) {
@@ -62,7 +63,8 @@ return_code_t handle_one_peer_discovery_request(handle_peer_discovery_requests_a
         free(peer_info);
         goto end;
     }
-    return_code = linked_list_find(args->peer_info_list, peer_info, &found_node);
+    return_code = linked_list_find(
+        args->peer_info_list, peer_info, &found_node);
     if (SUCCESS != return_code) {
         free(peer_info);
         pthread_mutex_unlock(&args->peer_info_list_mutex);
@@ -144,8 +146,63 @@ return_code_t handle_one_peer_discovery_request(handle_peer_discovery_requests_a
         }
         free(peer_info);
     }
-    // TODO filter out expired peers
-    // TODO print filtered peers
+    time_t current_time = time(NULL);
+    // TODO we are assuming a linked list and also writing linked list code--add issue
+    node_t *prev = NULL;
+    node_t *node = args->peer_info_list->head;
+    while (NULL != node) {
+        peer_info_t *peer = (peer_info_t *)node->data;
+        bool peer_expired = current_time - peer->last_connected >
+            args->peer_keepalive_microseconds / 1e6;
+        if (peer_expired) {
+            if (NULL == prev) {
+                args->peer_info_list->head = node->next;
+            }
+            else {
+                prev->next = node->next;
+            }
+            if (args->print_progress) {
+                char peer_hostname[NI_MAXHOST] = {0};
+                if (0 != getnameinfo(
+                    (struct sockaddr *)&peer->listen_addr,
+                    sizeof(struct sockaddr_in6),
+                    peer_hostname,
+                    NI_MAXHOST,
+                    NULL,
+                    0,
+                    0)) {
+                    return_code = FAILURE_NETWORK_FUNCTION;
+                    pthread_mutex_unlock(&args->peer_info_list_mutex);
+                    goto end;
+                }
+                char peer_addr_str[INET6_ADDRSTRLEN] = {0};
+                if (NULL == inet_ntop(
+                    AF_INET6,
+                    &peer->listen_addr.sin6_addr,
+                    peer_addr_str,
+                    INET6_ADDRSTRLEN)) {
+                    return_code = FAILURE_NETWORK_FUNCTION;
+                    pthread_mutex_unlock(&args->peer_info_list_mutex);
+                    goto end;
+                }
+                printf(
+                    "Server removed peer %s (%s):%d\n",
+                    peer_hostname,
+                    peer_addr_str,
+                    htons(peer->listen_addr.sin6_port));
+            }
+            args->peer_info_list->free_function(node->data);
+            free(node);
+            node = prev;
+        }
+        if (NULL == node) {
+            node = args->peer_info_list->head;
+        }
+        else {
+            prev = node;
+            node = node->next;
+        }
+    }
     command_send_peer_list_t command_send_peer_list = {0};
     memcpy(
         command_send_peer_list.header.command_prefix,
