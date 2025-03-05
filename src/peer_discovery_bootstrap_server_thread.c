@@ -246,7 +246,8 @@ end:
     return return_code;
 }
 
-return_code_t *handle_peer_discovery_requests(handle_peer_discovery_requests_args_t *args) {
+return_code_t *handle_peer_discovery_requests(
+    handle_peer_discovery_requests_args_t *args) {
     return_code_t return_code = SUCCESS;
     int listen_fd = socket(AF_INET6, SOCK_STREAM, 0);
     if (listen_fd < 0) {
@@ -326,7 +327,7 @@ return_code_t *handle_peer_discovery_requests(handle_peer_discovery_requests_arg
         }
         return_code = handle_one_peer_discovery_request(args, conn_fd);
         if (SUCCESS != return_code && args->print_progress) {
-            printf("Error in peer discovery bootstrap server; retrying\n");
+            printf("Error handling peer discovery request; retrying\n");
         }
         # ifdef _WIN32
             closesocket(conn_fd);
