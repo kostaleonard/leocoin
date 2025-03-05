@@ -32,7 +32,7 @@
 #define COMMAND_ERROR_MESSAGE_LEN 256
 #define COMMAND_HEADER_INITIALIZER {{'L', 'E', 'O', '\0'}, 0, 0}
 
-// These functions are for mocking in unit tests.
+// These functions allow for mocking in unit tests.
 extern recv_func_t wrap_recv;
 extern send_func_t wrap_send;
 extern connect_func_t wrap_connect;

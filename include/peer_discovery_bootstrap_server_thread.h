@@ -36,7 +36,8 @@ typedef struct handle_peer_discovery_requests_args_t {
     pthread_mutex_t exit_ready_mutex;
 } handle_peer_discovery_requests_args_t;
 
-return_code_t handle_peer_discovery_requests_once(handle_peer_discovery_requests_args_t *args, int conn_fd);
+//TODO receives register peer command, sends back the peer list
+return_code_t handle_one_peer_discovery_request(handle_peer_discovery_requests_args_t *args, int conn_fd);
 
 return_code_t *handle_peer_discovery_requests(handle_peer_discovery_requests_args_t *args);
 

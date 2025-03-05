@@ -309,7 +309,14 @@ int main(int argc, char **argv) {
         cmocka_unit_test_teardown(
             test_discover_peers_exits_when_should_stop_is_set, teardown),
         // test_peer_discovery_bootstrap_server_thread.h
-        cmocka_unit_test(test_placeholder),
+        cmocka_unit_test_teardown(
+            test_handle_one_peer_discovery_request_adds_to_peer_list, teardown),
+        cmocka_unit_test_teardown(
+            test_handle_one_peer_discovery_request_updates_peer_keepalive,
+            teardown),
+        cmocka_unit_test_teardown(
+            test_handle_peer_discovery_requests_exits_when_should_stop_is_set,
+            teardown),
     };
     return_code = cmocka_run_group_tests(tests, NULL, teardown);
     #ifdef _WIN32
