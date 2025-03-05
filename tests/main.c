@@ -26,6 +26,7 @@
 #include "tests/test_networking.h"
 #include "tests/test_sleep.h"
 #include "tests/test_peer_discovery_thread.h"
+#include "tests/test_peer_discovery_bootstrap_server_thread.h"
 
 int _unlink_callback(
     const char *fpath,
@@ -307,6 +308,18 @@ int main(int argc, char **argv) {
             test_discover_peers_once_receives_large_peer_list, teardown),
         cmocka_unit_test_teardown(
             test_discover_peers_exits_when_should_stop_is_set, teardown),
+        // test_peer_discovery_bootstrap_server_thread.h
+        cmocka_unit_test_teardown(
+            test_handle_one_peer_discovery_request_adds_to_peer_list, teardown),
+        cmocka_unit_test_teardown(
+            test_handle_one_peer_discovery_request_updates_peer_keepalive,
+            teardown),
+        cmocka_unit_test_teardown(
+            test_handle_one_peer_discovery_request_removes_expired_peers,
+            teardown),
+        cmocka_unit_test_teardown(
+            test_handle_peer_discovery_requests_exits_when_should_stop_is_set,
+            teardown),
     };
     return_code = cmocka_run_group_tests(tests, NULL, teardown);
     #ifdef _WIN32
