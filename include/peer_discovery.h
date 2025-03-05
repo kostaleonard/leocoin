@@ -30,7 +30,7 @@
  */
 typedef struct peer_info_t {
     struct sockaddr_in6 listen_addr;
-    time_t last_connected;
+    time_t last_connected; // TODO this only gives us second-level granularity
 } peer_info_t;
 
 /**

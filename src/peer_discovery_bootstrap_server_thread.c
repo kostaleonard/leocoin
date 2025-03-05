@@ -145,6 +145,7 @@ return_code_t handle_one_peer_discovery_request(handle_peer_discovery_requests_a
         free(peer_info);
     }
     // TODO filter out expired peers
+    // TODO print filtered peers
     command_send_peer_list_t command_send_peer_list = {0};
     memcpy(
         command_send_peer_list.header.command_prefix,
