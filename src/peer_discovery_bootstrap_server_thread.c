@@ -3,6 +3,9 @@
 #include "include/peer_discovery.h"
 #include "include/peer_discovery_bootstrap_server_thread.h"
 
+#define LISTEN_BACKLOG 5
+#define POLL_TIMEOUT_MILLISECONDS 100
+
 return_code_t handle_one_peer_discovery_request(
     handle_peer_discovery_requests_args_t *args, int conn_fd) {
     return_code_t return_code = SUCCESS;
@@ -285,55 +288,70 @@ return_code_t *handle_peer_discovery_requests(
     }
     bool should_stop = *args->should_stop;
     while (!should_stop) {
-        // TODO have a timeout in here so we can check should_stop regularly?
         struct sockaddr_in6 client_addr = {0};
         socklen_t client_len = sizeof(client_addr);
-        int conn_fd = accept(
-            listen_fd, (struct sockaddr *)&client_addr, &client_len);
-        if (conn_fd < 0) {
+        #ifdef _WIN32
+            WSAPOLLFD fds;
+            fds.fd = listen_fd;
+            fds.events = POLLRDNORM;
+            int retval = WSAPoll(&fds, 1, POLL_TIMEOUT_MILLISECONDS);
+        #else
+            struct pollfd fds;
+            fds.fd = listen_fd;
+            fds.events = POLLIN;
+            int retval = poll(&fds, 1, POLL_TIMEOUT_MILLISECONDS);
+        #endif
+        if (-1 == retval) {
             return_code = FAILURE_NETWORK_FUNCTION;
             goto end;
-        }
-        if (sizeof(client_addr) != client_len) {
-            return_code = FAILURE_BUFFER_TOO_SMALL;
-            goto end;
-        }
-        if (args->print_progress) {
-            char client_hostname[NI_MAXHOST] = {0};
-            if (0 != getnameinfo(
-                (struct sockaddr *)&client_addr,
-                client_len,
-                client_hostname,
-                NI_MAXHOST,
-                NULL,
-                0,
-                0)) {
+        } else if (0 != retval) {
+            int conn_fd = accept(
+                listen_fd, (struct sockaddr *)&client_addr, &client_len);
+            if (conn_fd < 0) {
                 return_code = FAILURE_NETWORK_FUNCTION;
                 goto end;
             }
-            char client_addr_str[INET6_ADDRSTRLEN] = {0};
-            if (NULL == inet_ntop(
-                AF_INET6,
-                &client_addr.sin6_addr,
-                client_addr_str,
-                INET6_ADDRSTRLEN)) {
-                return_code = FAILURE_NETWORK_FUNCTION;
+            if (sizeof(client_addr) != client_len) {
+                return_code = FAILURE_BUFFER_TOO_SMALL;
                 goto end;
             }
-            printf(
-                "Server established connection with %s (%s)\n",
-                client_hostname,
-                client_addr_str);
+            if (args->print_progress) {
+                char client_hostname[NI_MAXHOST] = {0};
+                if (0 != getnameinfo(
+                    (struct sockaddr *)&client_addr,
+                    client_len,
+                    client_hostname,
+                    NI_MAXHOST,
+                    NULL,
+                    0,
+                    0)) {
+                    return_code = FAILURE_NETWORK_FUNCTION;
+                    goto end;
+                }
+                char client_addr_str[INET6_ADDRSTRLEN] = {0};
+                if (NULL == inet_ntop(
+                    AF_INET6,
+                    &client_addr.sin6_addr,
+                    client_addr_str,
+                    INET6_ADDRSTRLEN)) {
+                    return_code = FAILURE_NETWORK_FUNCTION;
+                    goto end;
+                }
+                printf(
+                    "Server established connection with %s (%s)\n",
+                    client_hostname,
+                    client_addr_str);
+            }
+            return_code = handle_one_peer_discovery_request(args, conn_fd);
+            if (SUCCESS != return_code && args->print_progress) {
+                printf("Error handling peer discovery request; retrying\n");
+            }
+            # ifdef _WIN32
+                closesocket(conn_fd);
+            # else
+                close(conn_fd);
+            # endif
         }
-        return_code = handle_one_peer_discovery_request(args, conn_fd);
-        if (SUCCESS != return_code && args->print_progress) {
-            printf("Error handling peer discovery request; retrying\n");
-        }
-        # ifdef _WIN32
-            closesocket(conn_fd);
-        # else
-            close(conn_fd);
-        # endif
         should_stop = *args->should_stop;
     }
 end:

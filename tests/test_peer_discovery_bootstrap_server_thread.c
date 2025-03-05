@@ -325,22 +325,6 @@ void test_handle_peer_discovery_requests_exits_when_should_stop_is_set() {
     args.exit_ready = &exit_ready;
     pthread_cond_init(&args.exit_ready_cond, NULL);
     pthread_mutex_init(&args.exit_ready_mutex, NULL);
-    command_register_peer_t command_register_peer = {0};
-    memcpy(
-        command_register_peer.header.command_prefix,
-        COMMAND_PREFIX,
-        COMMAND_PREFIX_LEN);
-    command_register_peer.header.command = COMMAND_REGISTER_PEER;
-    command_register_peer.addr[sizeof(IN6_ADDR) - 1] = 1;
-    command_register_peer.sin6_family = AF_INET6;
-    command_register_peer.sin6_port = htons(44444);
-    unsigned char *command_register_peer_buffer = NULL;
-    uint64_t command_register_peer_buffer_len = 0;
-    return_code = command_register_peer_serialize(
-        &command_register_peer,
-        &command_register_peer_buffer,
-        &command_register_peer_buffer_len);
-    assert_true(SUCCESS == return_code);
     pthread_t thread;
     pthread_create(
         &thread, NULL, handle_peer_discovery_requests_pthread_wrapper, &args);

@@ -6,7 +6,6 @@
 
 #ifndef INCLUDE_PEER_DISCOVERY_BOOTSTRAP_SERVER_THREAD_H_
 #define INCLUDE_PEER_DISCOVERY_BOOTSTRAP_SERVER_THREAD_H_
-#define LISTEN_BACKLOG 5
 #define DEFAULT_PEER_KEEPALIVE_SECONDS 60
 #include <pthread.h>
 #include <stdatomic.h>
@@ -20,6 +19,7 @@
     #include <sys/socket.h>
     #include <sys/types.h>
     #include <unistd.h>
+    #include <poll.h>
 #endif
 #include "include/return_codes.h"
 #include "include/linked_list.h"
