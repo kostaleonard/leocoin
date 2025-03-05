@@ -44,7 +44,7 @@ void test_handle_one_peer_discovery_request_adds_to_peer_list() {
     args.peer_keepalive_microseconds = 1e6;
     args.peer_info_list = peer_info_list;
     pthread_mutex_init(&args.peer_info_list_mutex, NULL);
-    args.print_progress = true;
+    args.print_progress = false;
     atomic_bool should_stop = false;
     args.should_stop = &should_stop;
     bool exit_ready = false;

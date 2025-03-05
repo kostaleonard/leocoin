@@ -76,17 +76,73 @@ return_code_t handle_one_peer_discovery_request(handle_peer_discovery_requests_a
             goto end;
         }
         if (args->print_progress) {
-            // TODO print hostname and port
-            printf("Added peer\n");
+            char peer_hostname[NI_MAXHOST] = {0};
+            if (0 != getnameinfo(
+                (struct sockaddr *)&peer_info->listen_addr,
+                sizeof(struct sockaddr_in6),
+                peer_hostname,
+                NI_MAXHOST,
+                NULL,
+                0,
+                0)) {
+                return_code = FAILURE_NETWORK_FUNCTION;
+                free(peer_info);
+                pthread_mutex_unlock(&args->peer_info_list_mutex);
+                goto end;
+            }
+            char peer_addr_str[INET6_ADDRSTRLEN] = {0};
+            if (NULL == inet_ntop(
+                AF_INET6,
+                &peer_info->listen_addr.sin6_addr,
+                peer_addr_str,
+                INET6_ADDRSTRLEN)) {
+                return_code = FAILURE_NETWORK_FUNCTION;
+                free(peer_info);
+                pthread_mutex_unlock(&args->peer_info_list_mutex);
+                goto end;
+            }
+            printf(
+                "Server added peer %s (%s):%d\n",
+                peer_hostname,
+                peer_addr_str,
+                htons(peer_info->listen_addr.sin6_port));
         }
     } else {
         peer_info_t *found_peer_info = (peer_info_t *)found_node->data;
         found_peer_info->last_connected = peer_info->last_connected;
-        free(peer_info);
         if (args->print_progress) {
-            // TODO print hostname and port
-            printf("Updated peer keepalive\n");
+            char peer_hostname[NI_MAXHOST] = {0};
+            if (0 != getnameinfo(
+                (struct sockaddr *)&peer_info->listen_addr,
+                sizeof(struct sockaddr_in6),
+                peer_hostname,
+                NI_MAXHOST,
+                NULL,
+                0,
+                0)) {
+                return_code = FAILURE_NETWORK_FUNCTION;
+                free(peer_info);
+                pthread_mutex_unlock(&args->peer_info_list_mutex);
+                goto end;
+            }
+            char peer_addr_str[INET6_ADDRSTRLEN] = {0};
+            if (NULL == inet_ntop(
+                AF_INET6,
+                &peer_info->listen_addr.sin6_addr,
+                peer_addr_str,
+                INET6_ADDRSTRLEN)) {
+                return_code = FAILURE_NETWORK_FUNCTION;
+                free(peer_info);
+                pthread_mutex_unlock(&args->peer_info_list_mutex);
+                goto end;
+            }
+            printf(
+                "Server updated peer %s (%s):%d\n",
+                peer_hostname,
+                peer_addr_str,
+                htons(peer_info->listen_addr.sin6_port));
         }
+        free(peer_info);
     }
     // TODO filter out expired peers
     command_send_peer_list_t command_send_peer_list = {0};
