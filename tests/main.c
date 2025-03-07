@@ -27,6 +27,7 @@
 #include "tests/test_sleep.h"
 #include "tests/test_peer_discovery_thread.h"
 #include "tests/test_peer_discovery_bootstrap_server_thread.h"
+#include "tests/test_consensus_peer_server_thread.h"
 
 int _unlink_callback(
     const char *fpath,
@@ -320,6 +321,10 @@ int main(int argc, char **argv) {
         cmocka_unit_test_teardown(
             test_handle_peer_discovery_requests_exits_when_should_stop_is_set,
             teardown),
+        // test_consensus_peer_server_thread.h
+        // TODO some of these will need teardown.
+        cmocka_unit_test(
+            test_run_consensus_peer_server_exits_when_should_stop_is_set),
     };
     return_code = cmocka_run_group_tests(tests, NULL, teardown);
     #ifdef _WIN32
