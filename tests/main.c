@@ -225,7 +225,7 @@ int main(int argc, char **argv) {
         cmocka_unit_test(test_htobe64_correctly_encodes_data),
         cmocka_unit_test(test_betoh64_correctly_decodes_data),
         // test_mining_thread.h
-        // These multithreaded tests are incredibly slow in valgrind.
+        // These tests are slow in valgrind.
         // They run very fast outside of valgrind.
         # ifdef RUN_SLOWTESTS
             cmocka_unit_test(test_mine_blocks_exits_when_should_stop_is_set),
@@ -322,7 +322,18 @@ int main(int argc, char **argv) {
             test_handle_peer_discovery_requests_exits_when_should_stop_is_set,
             teardown),
         // test_consensus_peer_server_thread.h
-        // TODO some of these will need teardown.
+        cmocka_unit_test_teardown(
+            test_handle_one_consensus_request_receives_peer_blockchain,
+            teardown),
+        cmocka_unit_test_teardown(
+            test_handle_one_consensus_request_switches_to_longest_chain,
+            teardown),
+        cmocka_unit_test_teardown(
+            test_handle_one_consensus_request_rejects_invalid_chain,
+            teardown),
+        cmocka_unit_test_teardown(
+            test_handle_one_consensus_request_sends_longest_chain,
+            teardown),
         cmocka_unit_test(
             test_run_consensus_peer_server_exits_when_should_stop_is_set),
     };

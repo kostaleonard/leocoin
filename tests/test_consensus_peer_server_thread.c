@@ -8,6 +8,30 @@
 #include "include/sleep.h"
 #include "include/consensus_peer_server_thread.h"
 #include "tests/test_consensus_peer_server_thread.h"
+#include "tests/mocks.h"
+
+void test_handle_one_consensus_request_receives_peer_blockchain() {
+    wrap_connect = mock_connect;
+    wrap_recv = mock_recv;
+    wrap_send = mock_send;
+    // TODO
+    assert_true(false);
+}
+
+void test_handle_one_consensus_request_switches_to_longest_chain() {
+    // TODO
+    assert_true(false);
+}
+
+void test_handle_one_consensus_request_rejects_invalid_chain() {
+    // TODO
+    assert_true(false);
+}
+
+void test_handle_one_consensus_request_sends_longest_chain() {
+    // TODO
+    assert_true(false);
+}
 
 void test_run_consensus_peer_server_exits_when_should_stop_is_set() {
     blockchain_t *blockchain = NULL;

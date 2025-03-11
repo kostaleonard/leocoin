@@ -8,7 +8,10 @@
 #define POLL_TIMEOUT_MILLISECONDS 100
 
 return_code_t handle_one_consensus_request(run_consensus_peer_server_args_t *args, int conn_fd) {
-    // TODO
+    // TODO receive command send blockchain
+    // TODO make sure peer chain is valid and has same number of leading zeros required
+    // TODO update to longest chain
+    // TODO send back command send blockchain with new longest chain
     return FAILURE_INVALID_INPUT;
 }
  

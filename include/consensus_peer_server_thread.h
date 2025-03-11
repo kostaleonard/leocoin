@@ -25,7 +25,7 @@ typedef struct run_consensus_peer_server_args_t {
     pthread_mutex_t exit_ready_mutex;
 } run_consensus_peer_server_args_t;
 
-// TODO helper function for receiving transaction
+// TODO helper function for receiving transaction--let's add this as a later feature
 
 // TODO helper function for receiving new blocks
 
