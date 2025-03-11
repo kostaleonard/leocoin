@@ -812,6 +812,51 @@ void test_command_send_peer_list_deserialize_fails_on_invalid_input() {
     linked_list_destroy(peer_info_list);
 }
 
+void test_command_send_blockchain_serialize_fails_on_invalid_input() {
+    // TODO
+    assert_true(false);
+}
+
+void test_command_send_blockchain_serialize_fails_on_invalid_prefix() {
+    // TODO
+    assert_true(false);
+}
+
+void test_command_send_blockchain_serialize_fails_on_invalid_command() {
+    // TODO
+    assert_true(false);
+}
+
+void test_command_send_blockchain_serialize_creates_nonempty_buffer() {
+    // TODO
+    assert_true(false);
+}
+
+void test_command_send_blockchain_deserialize_reconstructs_command() {
+    // TODO
+    assert_true(false);
+}
+
+void test_command_send_blockchain_deserialize_fails_on_read_past_buffer() {
+    // TODO
+    assert_true(false);
+}
+
+void test_command_send_blockchain_deserialize_fails_on_invalid_prefix() {
+    // TODO
+    assert_true(false);
+}
+
+void test_command_send_blockchain_deserialize_fails_on_invalid_command() {
+    // TODO
+    assert_true(false);
+}
+
+void test_command_send_blockchain_deserialize_fails_on_invalid_input() {
+    // TODO
+    assert_true(false);
+}
+
 void test_recv_all_reads_data_from_socket() {
     wrap_recv = mock_recv;
     char *read_data = "hello recv";

@@ -288,6 +288,24 @@ int main(int argc, char **argv) {
             test_command_send_peer_list_deserialize_fails_on_invalid_command),
         cmocka_unit_test(
             test_command_send_peer_list_deserialize_fails_on_invalid_input),
+        cmocka_unit_test(
+            test_command_send_blockchain_serialize_fails_on_invalid_input),
+        cmocka_unit_test(
+            test_command_send_blockchain_serialize_fails_on_invalid_prefix),
+        cmocka_unit_test(
+            test_command_send_blockchain_serialize_fails_on_invalid_command),
+        cmocka_unit_test(
+            test_command_send_blockchain_serialize_creates_nonempty_buffer),
+        cmocka_unit_test(
+            test_command_send_blockchain_deserialize_reconstructs_command),
+        cmocka_unit_test(
+            test_command_send_blockchain_deserialize_fails_on_read_past_buffer),
+        cmocka_unit_test(
+            test_command_send_blockchain_deserialize_fails_on_invalid_prefix),
+        cmocka_unit_test(
+            test_command_send_blockchain_deserialize_fails_on_invalid_command),
+        cmocka_unit_test(
+            test_command_send_blockchain_deserialize_fails_on_invalid_input),
         cmocka_unit_test_teardown(
             test_recv_all_reads_data_from_socket, teardown),
         cmocka_unit_test_teardown(test_recv_all_handles_partial_read, teardown),
