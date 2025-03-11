@@ -14,6 +14,7 @@
 #include "include/blockchain.h"
 
 typedef struct run_consensus_peer_server_args_t {
+    struct sockaddr_in6 consensus_peer_server_addr;
     synchronized_blockchain_t *sync;
     linked_list_t *peer_info_list;
     pthread_mutex_t peer_info_list_mutex;

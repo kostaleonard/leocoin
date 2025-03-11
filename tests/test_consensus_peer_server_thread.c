@@ -50,6 +50,10 @@ void test_run_consensus_peer_server_exits_when_should_stop_is_set() {
     return_code = linked_list_prepend(peer_info_list, peer1);
     assert_true(SUCCESS == return_code);
     run_consensus_peer_server_args_t args = {0};
+    args.consensus_peer_server_addr.sin6_family = AF_INET6;
+    args.consensus_peer_server_addr.sin6_port = htons(55554);
+    ((unsigned char *)(&args.consensus_peer_server_addr.sin6_addr))[
+        sizeof(IN6_ADDR) - 1] = 1;
     args.sync = sync;
     args.peer_info_list = peer_info_list;
     pthread_mutex_init(&args.peer_info_list_mutex, NULL);
