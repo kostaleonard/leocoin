@@ -346,6 +346,22 @@ end:
     return return_code;
 }
 
+return_code_t command_send_blockchain_serialize(
+    command_send_blockchain_t *command_send_blockchain,
+    unsigned char **buffer,
+    uint64_t *buffer_size) {
+    // TODO
+    return FAILURE_INVALID_INPUT;
+}
+
+return_code_t command_send_blockchain_deserialize(
+    command_send_blockchain_t *command_send_blockchain,
+    unsigned char *buffer,
+    uint64_t buffer_size) {
+    // TODO
+    return FAILURE_INVALID_INPUT;
+}
+
 return_code_t recv_all(int sockfd, void *buf, size_t len, int flags) {
     return_code_t return_code = SUCCESS;
     if (NULL == buf) {

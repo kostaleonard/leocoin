@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "include/blockchain.h"
 #include "include/linked_list.h"
 #include "include/networking.h"
 #include "include/peer_discovery.h"
@@ -813,8 +814,44 @@ void test_command_send_peer_list_deserialize_fails_on_invalid_input() {
 }
 
 void test_command_send_blockchain_serialize_fails_on_invalid_input() {
-    // TODO
-    assert_true(false);
+    command_header_t command_header = COMMAND_HEADER_INITIALIZER;
+    command_header.command = COMMAND_SEND_BLOCKCHAIN;
+    command_header.command_len = 0;
+    command_send_blockchain_t command_send_blockchain = {0};
+    command_send_blockchain.header = command_header;
+    blockchain_t *blockchain = NULL;
+    size_t num_zero_bytes = 4;
+    return_code_t return_code = blockchain_create(&blockchain, num_zero_bytes);
+    assert_true(SUCCESS == return_code);
+    block_t *genesis_block = NULL;
+    return_code = block_create_genesis_block(&genesis_block);
+    assert_true(SUCCESS == return_code);
+    return_code = blockchain_add_block(blockchain, genesis_block);
+    assert_true(SUCCESS == return_code);
+    return_code = blockchain_serialize(
+        blockchain,
+        &command_send_blockchain.blockchain_data,
+        &command_send_blockchain.blockchain_data_len);
+    assert_true(SUCCESS == return_code);
+    unsigned char *send_blockchain_buffer = NULL;
+    uint64_t send_blockchain_buffer_len = 0;
+    return_code = command_send_blockchain_serialize(
+        NULL,
+        &send_blockchain_buffer,
+        &send_blockchain_buffer_len);
+    assert_true(FAILURE_INVALID_INPUT == return_code);
+    return_code = command_send_blockchain_serialize(
+        &command_send_blockchain,
+        NULL,
+        &send_blockchain_buffer_len);
+    assert_true(FAILURE_INVALID_INPUT == return_code);
+    return_code = command_send_blockchain_serialize(
+        &command_send_blockchain,
+        &send_blockchain_buffer,
+        NULL);
+    assert_true(FAILURE_INVALID_INPUT == return_code);
+    blockchain_destroy(blockchain);
+    free(command_send_blockchain.blockchain_data);
 }
 
 void test_command_send_blockchain_serialize_fails_on_invalid_prefix() {
