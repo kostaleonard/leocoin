@@ -954,28 +954,211 @@ void test_command_send_blockchain_serialize_creates_nonempty_buffer() {
 }
 
 void test_command_send_blockchain_deserialize_reconstructs_command() {
-    // TODO
-    assert_true(false);
+    command_header_t command_header = COMMAND_HEADER_INITIALIZER;
+    command_header.command = COMMAND_SEND_BLOCKCHAIN;
+    command_header.command_len = 0;
+    command_send_blockchain_t command_send_blockchain = {0};
+    command_send_blockchain.header = command_header;
+    blockchain_t *blockchain = NULL;
+    size_t num_zero_bytes = 4;
+    return_code_t return_code = blockchain_create(&blockchain, num_zero_bytes);
+    assert_true(SUCCESS == return_code);
+    block_t *genesis_block = NULL;
+    return_code = block_create_genesis_block(&genesis_block);
+    assert_true(SUCCESS == return_code);
+    return_code = blockchain_add_block(blockchain, genesis_block);
+    assert_true(SUCCESS == return_code);
+    return_code = blockchain_serialize(
+        blockchain,
+        &command_send_blockchain.blockchain_data,
+        &command_send_blockchain.blockchain_data_len);
+    assert_true(SUCCESS == return_code);
+    unsigned char *send_blockchain_buffer = NULL;
+    uint64_t send_blockchain_buffer_len = 0;
+    return_code = command_send_blockchain_serialize(
+        &command_send_blockchain,
+        &send_blockchain_buffer,
+        &send_blockchain_buffer_len);
+    assert_true(SUCCESS == return_code);
+    command_send_blockchain_t deserialized_command_send_blockchain = {0};
+    return_code = command_send_blockchain_deserialize(
+        &deserialized_command_send_blockchain,
+        send_blockchain_buffer,
+        send_blockchain_buffer_len);
+    assert_true(SUCCESS == return_code);
+    // Everything should be the same except the pointers to blockchain data.
+    assert_true(0 == memcmp(
+        &command_send_blockchain,
+        &deserialized_command_send_blockchain,
+        sizeof(command_send_blockchain) - sizeof(unsigned char *)));
+    // The pointers will be different, but have the same contents.
+    assert_true(0 == memcmp(
+        command_send_blockchain.blockchain_data,
+        deserialized_command_send_blockchain.blockchain_data,
+        command_send_blockchain.blockchain_data_len));
+    free(send_blockchain_buffer);
+    blockchain_destroy(blockchain);
+    free(command_send_blockchain.blockchain_data);
+    free(deserialized_command_send_blockchain.blockchain_data);
 }
 
 void test_command_send_blockchain_deserialize_fails_on_read_past_buffer() {
-    // TODO
-    assert_true(false);
+    command_header_t command_header = COMMAND_HEADER_INITIALIZER;
+    command_header.command = COMMAND_SEND_BLOCKCHAIN;
+    command_header.command_len = 0;
+    command_send_blockchain_t command_send_blockchain = {0};
+    command_send_blockchain.header = command_header;
+    blockchain_t *blockchain = NULL;
+    size_t num_zero_bytes = 4;
+    return_code_t return_code = blockchain_create(&blockchain, num_zero_bytes);
+    assert_true(SUCCESS == return_code);
+    block_t *genesis_block = NULL;
+    return_code = block_create_genesis_block(&genesis_block);
+    assert_true(SUCCESS == return_code);
+    return_code = blockchain_add_block(blockchain, genesis_block);
+    assert_true(SUCCESS == return_code);
+    return_code = blockchain_serialize(
+        blockchain,
+        &command_send_blockchain.blockchain_data,
+        &command_send_blockchain.blockchain_data_len);
+    assert_true(SUCCESS == return_code);
+    unsigned char *send_blockchain_buffer = NULL;
+    uint64_t send_blockchain_buffer_len = 0;
+    return_code = command_send_blockchain_serialize(
+        &command_send_blockchain,
+        &send_blockchain_buffer,
+        &send_blockchain_buffer_len);
+    assert_true(SUCCESS == return_code);
+    command_send_blockchain_t deserialized_command_send_blockchain = {0};
+    return_code = command_send_blockchain_deserialize(
+        &deserialized_command_send_blockchain,
+        send_blockchain_buffer,
+        send_blockchain_buffer_len - 5);
+    assert_true(FAILURE_BUFFER_TOO_SMALL == return_code);
+    free(send_blockchain_buffer);
+    blockchain_destroy(blockchain);
+    free(command_send_blockchain.blockchain_data);
 }
 
 void test_command_send_blockchain_deserialize_fails_on_invalid_prefix() {
-    // TODO
-    assert_true(false);
+    command_header_t command_header = COMMAND_HEADER_INITIALIZER;
+    command_header.command = COMMAND_SEND_BLOCKCHAIN;
+    command_header.command_len = 0;
+    command_send_blockchain_t command_send_blockchain = {0};
+    command_send_blockchain.header = command_header;
+    blockchain_t *blockchain = NULL;
+    size_t num_zero_bytes = 4;
+    return_code_t return_code = blockchain_create(&blockchain, num_zero_bytes);
+    assert_true(SUCCESS == return_code);
+    block_t *genesis_block = NULL;
+    return_code = block_create_genesis_block(&genesis_block);
+    assert_true(SUCCESS == return_code);
+    return_code = blockchain_add_block(blockchain, genesis_block);
+    assert_true(SUCCESS == return_code);
+    return_code = blockchain_serialize(
+        blockchain,
+        &command_send_blockchain.blockchain_data,
+        &command_send_blockchain.blockchain_data_len);
+    assert_true(SUCCESS == return_code);
+    unsigned char *send_blockchain_buffer = NULL;
+    uint64_t send_blockchain_buffer_len = 0;
+    return_code = command_send_blockchain_serialize(
+        &command_send_blockchain,
+        &send_blockchain_buffer,
+        &send_blockchain_buffer_len);
+    assert_true(SUCCESS == return_code);
+    send_blockchain_buffer[2] = 'A';
+    command_send_blockchain_t deserialized_command_send_blockchain = {0};
+    return_code = command_send_blockchain_deserialize(
+        &deserialized_command_send_blockchain,
+        send_blockchain_buffer,
+        send_blockchain_buffer_len);
+    assert_true(FAILURE_INVALID_COMMAND_PREFIX == return_code);
+    free(send_blockchain_buffer);
+    blockchain_destroy(blockchain);
+    free(command_send_blockchain.blockchain_data);
 }
 
 void test_command_send_blockchain_deserialize_fails_on_invalid_command() {
-    // TODO
-    assert_true(false);
+    command_header_t command_header = COMMAND_HEADER_INITIALIZER;
+    command_header.command = COMMAND_SEND_BLOCKCHAIN;
+    command_header.command_len = 0;
+    command_send_blockchain_t command_send_blockchain = {0};
+    command_send_blockchain.header = command_header;
+    blockchain_t *blockchain = NULL;
+    size_t num_zero_bytes = 4;
+    return_code_t return_code = blockchain_create(&blockchain, num_zero_bytes);
+    assert_true(SUCCESS == return_code);
+    block_t *genesis_block = NULL;
+    return_code = block_create_genesis_block(&genesis_block);
+    assert_true(SUCCESS == return_code);
+    return_code = blockchain_add_block(blockchain, genesis_block);
+    assert_true(SUCCESS == return_code);
+    return_code = blockchain_serialize(
+        blockchain,
+        &command_send_blockchain.blockchain_data,
+        &command_send_blockchain.blockchain_data_len);
+    assert_true(SUCCESS == return_code);
+    unsigned char *send_blockchain_buffer = NULL;
+    uint64_t send_blockchain_buffer_len = 0;
+    return_code = command_send_blockchain_serialize(
+        &command_send_blockchain,
+        &send_blockchain_buffer,
+        &send_blockchain_buffer_len);
+    assert_true(SUCCESS == return_code);
+    send_blockchain_buffer[7] = COMMAND_ERROR;
+    command_send_blockchain_t deserialized_command_send_blockchain = {0};
+    return_code = command_send_blockchain_deserialize(
+        &deserialized_command_send_blockchain,
+        send_blockchain_buffer,
+        send_blockchain_buffer_len);
+    assert_true(FAILURE_INVALID_COMMAND == return_code);
+    free(send_blockchain_buffer);
+    blockchain_destroy(blockchain);
+    free(command_send_blockchain.blockchain_data);
 }
 
 void test_command_send_blockchain_deserialize_fails_on_invalid_input() {
-    // TODO
-    assert_true(false);
+    command_header_t command_header = COMMAND_HEADER_INITIALIZER;
+    command_header.command = COMMAND_SEND_BLOCKCHAIN;
+    command_header.command_len = 0;
+    command_send_blockchain_t command_send_blockchain = {0};
+    command_send_blockchain.header = command_header;
+    blockchain_t *blockchain = NULL;
+    size_t num_zero_bytes = 4;
+    return_code_t return_code = blockchain_create(&blockchain, num_zero_bytes);
+    assert_true(SUCCESS == return_code);
+    block_t *genesis_block = NULL;
+    return_code = block_create_genesis_block(&genesis_block);
+    assert_true(SUCCESS == return_code);
+    return_code = blockchain_add_block(blockchain, genesis_block);
+    assert_true(SUCCESS == return_code);
+    return_code = blockchain_serialize(
+        blockchain,
+        &command_send_blockchain.blockchain_data,
+        &command_send_blockchain.blockchain_data_len);
+    assert_true(SUCCESS == return_code);
+    unsigned char *send_blockchain_buffer = NULL;
+    uint64_t send_blockchain_buffer_len = 0;
+    return_code = command_send_blockchain_serialize(
+        &command_send_blockchain,
+        &send_blockchain_buffer,
+        &send_blockchain_buffer_len);
+    assert_true(SUCCESS == return_code);
+    command_send_blockchain_t deserialized_command_send_blockchain = {0};
+    return_code = command_send_blockchain_deserialize(
+        NULL,
+        send_blockchain_buffer,
+        send_blockchain_buffer_len);
+    assert_true(FAILURE_INVALID_INPUT == return_code);
+    return_code = command_send_blockchain_deserialize(
+        &deserialized_command_send_blockchain,
+        NULL,
+        send_blockchain_buffer_len);
+    assert_true(FAILURE_INVALID_INPUT == return_code);
+    free(send_blockchain_buffer);
+    blockchain_destroy(blockchain);
+    free(command_send_blockchain.blockchain_data);
 }
 
 void test_recv_all_reads_data_from_socket() {
