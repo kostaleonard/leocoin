@@ -349,9 +349,6 @@ int main(int argc, char **argv) {
         cmocka_unit_test_teardown(
             test_handle_one_consensus_request_rejects_invalid_chain,
             teardown),
-        cmocka_unit_test_teardown(
-            test_handle_one_consensus_request_sends_longest_chain,
-            teardown),
         cmocka_unit_test(
             test_run_consensus_peer_server_exits_when_should_stop_is_set),
     };

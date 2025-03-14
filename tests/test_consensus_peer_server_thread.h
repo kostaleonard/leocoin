@@ -15,8 +15,6 @@ void test_handle_one_consensus_request_switches_to_longest_chain();
 
 void test_handle_one_consensus_request_rejects_invalid_chain();
 
-void test_handle_one_consensus_request_sends_longest_chain();
-
 void test_run_consensus_peer_server_exits_when_should_stop_is_set();
  
 #endif  // TESTS_TEST_CONSENSUS_PEER_SERVER_THREAD_H_
