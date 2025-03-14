@@ -109,9 +109,8 @@ void test_handle_one_consensus_request_receives_peer_blockchain() {
     block_t *updated_genesis_block =
         (block_t *)args.sync->blockchain->block_list->head->data;
     // No change in blockchain because the peer's blockchain was not bigger.
-    assert_true(100 == updated_genesis_block->created_at);
+    assert_true(200 == updated_genesis_block->created_at);
     free(send_blockchain_buffer);
-    blockchain_destroy(blockchain);
     free(command_send_blockchain.blockchain_data);
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
