@@ -51,6 +51,7 @@ if(WIN32)
     target_link_libraries(networking ws2_32)
     target_link_libraries(peer_discovery ws2_32)
     target_link_libraries(peer_discovery_bootstrap_server ws2_32)
+    target_link_libraries(consensus_peer_server_thread ws2_32)
 endif()
 # Peer discovery client
 add_executable(peer_discovery_client src/peer_discovery_client.c)

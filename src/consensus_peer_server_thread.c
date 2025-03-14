@@ -67,6 +67,40 @@ return_code_t handle_one_consensus_request(
     if (SUCCESS != return_code) {
         goto end;
     }
+    if (!peer_blockchain_is_valid && args->print_progress) {
+        char peer_hostname[NI_MAXHOST] = {0};
+        struct sockaddr_in6 peer_addr = {0};
+        int peer_addr_len = sizeof(struct sockaddr_in6);
+        if (0 != getsockname(conn_fd, (struct sockaddr *)&peer_addr, &peer_addr_len)) {
+            return_code = FAILURE_NETWORK_FUNCTION;
+            goto end;
+        }
+        if (0 != getnameinfo(
+            (struct sockaddr *)&peer_addr,
+            sizeof(struct sockaddr_in6),
+            peer_hostname,
+            NI_MAXHOST,
+            NULL,
+            0,
+            0)) {
+            return_code = FAILURE_NETWORK_FUNCTION;
+            goto end;
+        }
+        char peer_addr_str[INET6_ADDRSTRLEN] = {0};
+        if (NULL == inet_ntop(
+            AF_INET6,
+            &peer_addr.sin6_addr,
+            peer_addr_str,
+            INET6_ADDRSTRLEN)) {
+            return_code = FAILURE_NETWORK_FUNCTION;
+            goto end;
+        }
+        printf(
+            "Server received invalid blockchain from %s (%s):%d\n",
+            peer_hostname,
+            peer_addr_str,
+            htons(peer_addr.sin6_port));
+    }
     uint64_t peer_blockchain_length = 0;
     // TODO there should really be a blockchain_length function.
     return_code = linked_list_length(
