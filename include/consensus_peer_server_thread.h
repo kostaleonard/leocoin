@@ -24,9 +24,6 @@
  * @param sync A reference to the synchronized blockchain. The server will
  * update the synchronized blockchain whenever it receives a longer chain that
  * is valid and has the same number of leading zeros required.
- * @param peer_info_list The list of peers that this server is aware of. Each
- * entry is a peer_info_t struct.
- * @param peer_info_list_mutex Protects peer_info_list.
  * @param print_progress If true, display progress on the screen.
  * @param should_stop This should initially be false. Setting this flag while
  * the function is running requests that the function terminate gracefully.
@@ -47,8 +44,6 @@
 typedef struct run_consensus_peer_server_args_t {
     struct sockaddr_in6 consensus_peer_server_addr;
     synchronized_blockchain_t *sync;
-    linked_list_t *peer_info_list; // TODO I don't think the peer list is necessary
-    pthread_mutex_t peer_info_list_mutex;
     bool print_progress;
     atomic_bool *should_stop;
     bool *exit_ready;

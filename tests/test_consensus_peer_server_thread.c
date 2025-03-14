@@ -64,40 +64,12 @@ void test_handle_one_consensus_request_receives_peer_blockchain() {
     synchronized_blockchain_t *sync = NULL;
     return_code = synchronized_blockchain_create(&sync, blockchain);
     assert_true(SUCCESS == return_code);
-    linked_list_t *peer_info_list = NULL;
-    return_code = linked_list_create(
-        &peer_info_list, free, compare_peer_info_t);
-    assert_true(SUCCESS == return_code);
-    peer_info_t *peer1 = calloc(1, sizeof(peer_info_t));
-    peer1->listen_addr.sin6_family = AF_INET6;
-    peer1->listen_addr.sin6_port = htons(12345);
-    peer1->listen_addr.sin6_flowinfo = 0;
-    ((unsigned char *)(&peer1->listen_addr.sin6_addr))[
-        sizeof(IN6_ADDR) - 1] = 1;
-    peer1->listen_addr.sin6_scope_id = 0;
-    peer1->last_connected = time(NULL);
-    peer_info_t *peer2 = calloc(1, sizeof(peer_info_t));
-    peer2->listen_addr.sin6_family = AF_INET6;
-    peer2->listen_addr.sin6_port = htons(23456);
-    peer2->listen_addr.sin6_flowinfo = 0;
-    ((unsigned char *)(&peer2->listen_addr.sin6_addr))[0] = 0xfe;
-    ((unsigned char *)(&peer2->listen_addr.sin6_addr))[1] = 0x80;
-    ((unsigned char *)(&peer2->listen_addr.sin6_addr))[
-        sizeof(IN6_ADDR) - 1] = 1;
-    peer2->listen_addr.sin6_scope_id = 0;
-    peer2->last_connected = time(NULL);
-    return_code = linked_list_prepend(peer_info_list, peer2);
-    assert_true(SUCCESS == return_code);
-    return_code = linked_list_prepend(peer_info_list, peer1);
-    assert_true(SUCCESS == return_code);
     run_consensus_peer_server_args_t args = {0};
     args.consensus_peer_server_addr.sin6_family = AF_INET6;
     args.consensus_peer_server_addr.sin6_port = htons(55554);
     ((unsigned char *)(&args.consensus_peer_server_addr.sin6_addr))[
         sizeof(IN6_ADDR) - 1] = 1;
     args.sync = sync;
-    args.peer_info_list = peer_info_list;
-    pthread_mutex_init(&args.peer_info_list_mutex, NULL);
     args.print_progress = false;
     atomic_bool should_stop = false;
     args.should_stop = &should_stop;
@@ -115,8 +87,6 @@ void test_handle_one_consensus_request_receives_peer_blockchain() {
     free(command_send_blockchain.blockchain_data);
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
-    pthread_mutex_destroy(&args.peer_info_list_mutex);
-    linked_list_destroy(args.peer_info_list);
     synchronized_blockchain_destroy(args.sync);
 }
 
@@ -177,40 +147,12 @@ void test_handle_one_consensus_request_switches_to_longest_chain() {
     synchronized_blockchain_t *sync = NULL;
     return_code = synchronized_blockchain_create(&sync, blockchain);
     assert_true(SUCCESS == return_code);
-    linked_list_t *peer_info_list = NULL;
-    return_code = linked_list_create(
-        &peer_info_list, free, compare_peer_info_t);
-    assert_true(SUCCESS == return_code);
-    peer_info_t *peer1 = calloc(1, sizeof(peer_info_t));
-    peer1->listen_addr.sin6_family = AF_INET6;
-    peer1->listen_addr.sin6_port = htons(12345);
-    peer1->listen_addr.sin6_flowinfo = 0;
-    ((unsigned char *)(&peer1->listen_addr.sin6_addr))[
-        sizeof(IN6_ADDR) - 1] = 1;
-    peer1->listen_addr.sin6_scope_id = 0;
-    peer1->last_connected = time(NULL);
-    peer_info_t *peer2 = calloc(1, sizeof(peer_info_t));
-    peer2->listen_addr.sin6_family = AF_INET6;
-    peer2->listen_addr.sin6_port = htons(23456);
-    peer2->listen_addr.sin6_flowinfo = 0;
-    ((unsigned char *)(&peer2->listen_addr.sin6_addr))[0] = 0xfe;
-    ((unsigned char *)(&peer2->listen_addr.sin6_addr))[1] = 0x80;
-    ((unsigned char *)(&peer2->listen_addr.sin6_addr))[
-        sizeof(IN6_ADDR) - 1] = 1;
-    peer2->listen_addr.sin6_scope_id = 0;
-    peer2->last_connected = time(NULL);
-    return_code = linked_list_prepend(peer_info_list, peer2);
-    assert_true(SUCCESS == return_code);
-    return_code = linked_list_prepend(peer_info_list, peer1);
-    assert_true(SUCCESS == return_code);
     run_consensus_peer_server_args_t args = {0};
     args.consensus_peer_server_addr.sin6_family = AF_INET6;
     args.consensus_peer_server_addr.sin6_port = htons(55554);
     ((unsigned char *)(&args.consensus_peer_server_addr.sin6_addr))[
         sizeof(IN6_ADDR) - 1] = 1;
     args.sync = sync;
-    args.peer_info_list = peer_info_list;
-    pthread_mutex_init(&args.peer_info_list_mutex, NULL);
     args.print_progress = false;
     atomic_bool should_stop = false;
     args.should_stop = &should_stop;
@@ -232,8 +174,6 @@ void test_handle_one_consensus_request_switches_to_longest_chain() {
     free(command_send_blockchain.blockchain_data);
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
-    pthread_mutex_destroy(&args.peer_info_list_mutex);
-    linked_list_destroy(args.peer_info_list);
     synchronized_blockchain_destroy(args.sync);
 }
 
@@ -298,40 +238,12 @@ void test_handle_one_consensus_request_rejects_invalid_chain() {
     synchronized_blockchain_t *sync = NULL;
     return_code = synchronized_blockchain_create(&sync, blockchain);
     assert_true(SUCCESS == return_code);
-    linked_list_t *peer_info_list = NULL;
-    return_code = linked_list_create(
-        &peer_info_list, free, compare_peer_info_t);
-    assert_true(SUCCESS == return_code);
-    peer_info_t *peer1 = calloc(1, sizeof(peer_info_t));
-    peer1->listen_addr.sin6_family = AF_INET6;
-    peer1->listen_addr.sin6_port = htons(12345);
-    peer1->listen_addr.sin6_flowinfo = 0;
-    ((unsigned char *)(&peer1->listen_addr.sin6_addr))[
-        sizeof(IN6_ADDR) - 1] = 1;
-    peer1->listen_addr.sin6_scope_id = 0;
-    peer1->last_connected = time(NULL);
-    peer_info_t *peer2 = calloc(1, sizeof(peer_info_t));
-    peer2->listen_addr.sin6_family = AF_INET6;
-    peer2->listen_addr.sin6_port = htons(23456);
-    peer2->listen_addr.sin6_flowinfo = 0;
-    ((unsigned char *)(&peer2->listen_addr.sin6_addr))[0] = 0xfe;
-    ((unsigned char *)(&peer2->listen_addr.sin6_addr))[1] = 0x80;
-    ((unsigned char *)(&peer2->listen_addr.sin6_addr))[
-        sizeof(IN6_ADDR) - 1] = 1;
-    peer2->listen_addr.sin6_scope_id = 0;
-    peer2->last_connected = time(NULL);
-    return_code = linked_list_prepend(peer_info_list, peer2);
-    assert_true(SUCCESS == return_code);
-    return_code = linked_list_prepend(peer_info_list, peer1);
-    assert_true(SUCCESS == return_code);
     run_consensus_peer_server_args_t args = {0};
     args.consensus_peer_server_addr.sin6_family = AF_INET6;
     args.consensus_peer_server_addr.sin6_port = htons(55554);
     ((unsigned char *)(&args.consensus_peer_server_addr.sin6_addr))[
         sizeof(IN6_ADDR) - 1] = 1;
     args.sync = sync;
-    args.peer_info_list = peer_info_list;
-    pthread_mutex_init(&args.peer_info_list_mutex, NULL);
     args.print_progress = false;
     atomic_bool should_stop = false;
     args.should_stop = &should_stop;
@@ -350,8 +262,6 @@ void test_handle_one_consensus_request_rejects_invalid_chain() {
     free(command_send_blockchain.blockchain_data);
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
-    pthread_mutex_destroy(&args.peer_info_list_mutex);
-    linked_list_destroy(args.peer_info_list);
     synchronized_blockchain_destroy(args.sync);
 }
 
@@ -369,40 +279,12 @@ void test_run_consensus_peer_server_exits_when_should_stop_is_set() {
     synchronized_blockchain_t *sync = NULL;
     return_code = synchronized_blockchain_create(&sync, blockchain);
     assert_true(SUCCESS == return_code);
-    linked_list_t *peer_info_list = NULL;
-    return_code = linked_list_create(
-        &peer_info_list, free, compare_peer_info_t);
-    assert_true(SUCCESS == return_code);
-    peer_info_t *peer1 = calloc(1, sizeof(peer_info_t));
-    peer1->listen_addr.sin6_family = AF_INET6;
-    peer1->listen_addr.sin6_port = htons(12345);
-    peer1->listen_addr.sin6_flowinfo = 0;
-    ((unsigned char *)(&peer1->listen_addr.sin6_addr))[
-        sizeof(IN6_ADDR) - 1] = 1;
-    peer1->listen_addr.sin6_scope_id = 0;
-    peer1->last_connected = time(NULL);
-    peer_info_t *peer2 = calloc(1, sizeof(peer_info_t));
-    peer2->listen_addr.sin6_family = AF_INET6;
-    peer2->listen_addr.sin6_port = htons(23456);
-    peer2->listen_addr.sin6_flowinfo = 0;
-    ((unsigned char *)(&peer2->listen_addr.sin6_addr))[0] = 0xfe;
-    ((unsigned char *)(&peer2->listen_addr.sin6_addr))[1] = 0x80;
-    ((unsigned char *)(&peer2->listen_addr.sin6_addr))[
-        sizeof(IN6_ADDR) - 1] = 1;
-    peer2->listen_addr.sin6_scope_id = 0;
-    peer2->last_connected = time(NULL);
-    return_code = linked_list_prepend(peer_info_list, peer2);
-    assert_true(SUCCESS == return_code);
-    return_code = linked_list_prepend(peer_info_list, peer1);
-    assert_true(SUCCESS == return_code);
     run_consensus_peer_server_args_t args = {0};
     args.consensus_peer_server_addr.sin6_family = AF_INET6;
     args.consensus_peer_server_addr.sin6_port = htons(55554);
     ((unsigned char *)(&args.consensus_peer_server_addr.sin6_addr))[
         sizeof(IN6_ADDR) - 1] = 1;
     args.sync = sync;
-    args.peer_info_list = peer_info_list;
-    pthread_mutex_init(&args.peer_info_list_mutex, NULL);
     args.print_progress = false;
     atomic_bool should_stop = false;
     args.should_stop = &should_stop;
@@ -436,7 +318,5 @@ void test_run_consensus_peer_server_exits_when_should_stop_is_set() {
     free(return_code_ptr);
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
-    pthread_mutex_destroy(&args.peer_info_list_mutex);
-    linked_list_destroy(args.peer_info_list);
     synchronized_blockchain_destroy(args.sync);
 }
