@@ -10,7 +10,6 @@
 #include <pthread.h>
 #include <stdatomic.h>
 #include "include/return_codes.h"
-#include "include/linked_list.h"
 #include "include/blockchain.h"
 
 /**
