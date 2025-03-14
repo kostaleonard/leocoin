@@ -139,7 +139,7 @@ return_code_t handle_one_consensus_request(
 end:
     return return_code;
 }
- 
+
 return_code_t *run_consensus_peer_server(
     run_consensus_peer_server_args_t *args) {
     return_code_t return_code = SUCCESS;

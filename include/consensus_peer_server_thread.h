@@ -5,8 +5,8 @@
  * peers.
  */
 
-#ifndef INCLUDE_CONSENSUS_PEER_SERVER_H_
-#define INCLUDE_CONSENSUS_PEER_SERVER_H_
+#ifndef INCLUDE_CONSENSUS_PEER_SERVER_THREAD_H_
+#define INCLUDE_CONSENSUS_PEER_SERVER_THREAD_H_
 #include <pthread.h>
 #include <stdatomic.h>
 #include "include/return_codes.h"
@@ -56,15 +56,27 @@ typedef struct run_consensus_peer_server_args_t {
     pthread_mutex_t exit_ready_mutex;
 } run_consensus_peer_server_args_t;
 
-// TODO docstrings
-
+/**
+ * @brief Receives one send blockchain command and sends the new longest chain.
+ * 
+ * @param conn_fd The open socket with the connected peer.
+ * @return return_code_t A return code indicating success or failure.
+ */
 return_code_t handle_one_consensus_request(
     run_consensus_peer_server_args_t *args, int conn_fd);
- 
+
+/**
+ * @brief Receives peer blockchains and transactions until interrupted.
+ * 
+ * @return return_code_t A pointer to a return code indicating success or
+ * failure. Callers must free.
+ */
 return_code_t *run_consensus_peer_server(
     run_consensus_peer_server_args_t *args);
 
+/**
+ * @brief Calls run_consensus_peer_server on args.
+ */
 void *run_consensus_peer_server_pthread_wrapper(void *args);
 
-#endif  // INCLUDE_CONSENSUS_PEER_SERVER_H_
- 
+#endif  // INCLUDE_CONSENSUS_PEER_SERVER_THREAD_H_
