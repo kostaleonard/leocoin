@@ -72,6 +72,7 @@ return_code_t handle_one_consensus_request(
     if (SUCCESS != return_code) {
         goto end;
     }
+    bool switched_to_peer_chain = false;
     return_code = pthread_mutex_lock(&args->sync->mutex);
     if (SUCCESS != return_code) {
         goto end;
@@ -92,6 +93,7 @@ return_code_t handle_one_consensus_request(
             same_number_leading_zeros) {
             args->sync->blockchain = peer_blockchain;
             atomic_fetch_add(&args->sync->version, 1);
+            switched_to_peer_chain = true;
             return_code = blockchain_destroy(our_blockchain);
             if (SUCCESS != return_code) {
                 pthread_mutex_unlock(&args->sync->mutex);
@@ -99,7 +101,8 @@ return_code_t handle_one_consensus_request(
             }
             if (args->print_progress) {
                 printf(
-                    "Server switched to longer blockchain: %lld -> %lld\n",
+                    "Server switched to longer blockchain: "
+                    "%"PRIu64" -> %"PRIu64"\n",
                     our_blockchain_length,
                     peer_blockchain_length);
             }
@@ -120,6 +123,12 @@ return_code_t handle_one_consensus_request(
     return_code = pthread_mutex_unlock(&args->sync->mutex);
     if (SUCCESS != return_code) {
         goto end;
+    }
+    if (!switched_to_peer_chain) {
+        return_code = blockchain_destroy(peer_blockchain);
+        if (SUCCESS != return_code) {
+            goto end;
+        }
     }
     unsigned char *send_buf = NULL;
     uint64_t send_buf_len = 0;

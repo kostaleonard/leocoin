@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,6 +84,7 @@ void test_handle_one_consensus_request_receives_peer_blockchain() {
         (block_t *)args.sync->blockchain->block_list->head->data;
     // No change in blockchain because the peer's blockchain was not bigger.
     assert_true(200 == updated_genesis_block->created_at);
+    blockchain_destroy(peer_blockchain);
     free(send_blockchain_buffer);
     free(command_send_blockchain.blockchain_data);
     pthread_cond_destroy(&args.exit_ready_cond);
@@ -170,6 +172,7 @@ void test_handle_one_consensus_request_switches_to_longest_chain() {
     assert_true(4 == new_blockchain_len);
     atomic_size_t new_sync_version = atomic_load(&sync->version);
     assert_true(new_sync_version > original_sync_version);
+    blockchain_destroy(peer_blockchain);
     free(send_blockchain_buffer);
     free(command_send_blockchain.blockchain_data);
     pthread_cond_destroy(&args.exit_ready_cond);
@@ -258,6 +261,7 @@ void test_handle_one_consensus_request_rejects_invalid_chain() {
         args.sync->blockchain->block_list, &new_blockchain_len);
     assert_true(SUCCESS == return_code);
     assert_true(1 == new_blockchain_len);
+    blockchain_destroy(peer_blockchain);
     free(send_blockchain_buffer);
     free(command_send_blockchain.blockchain_data);
     pthread_cond_destroy(&args.exit_ready_cond);

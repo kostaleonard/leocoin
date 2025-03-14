@@ -17,6 +17,7 @@
     #include <sys/socket.h>
     #include <sys/types.h>
     #include <unistd.h>
+    #include <poll.h>
     #ifndef IN6_ADDR
         typedef struct in6_addr IN6_ADDR;
     #endif
