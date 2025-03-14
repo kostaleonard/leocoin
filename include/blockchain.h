@@ -33,7 +33,7 @@ typedef struct blockchain_t {
  * been changed. It is initially zero. Writer threads can lock, update the
  * blockchain pointer, increment this number to signal an update, and unlock.
  * Reader threads can check this value without locking to know whether they need
- * to lock and read the value of blockchain.
+ * to lock and update their view of the blockchain.
  * @param mutex The mutex protecting access to this data structure's fields.
  */
 typedef struct synchronized_blockchain_t {

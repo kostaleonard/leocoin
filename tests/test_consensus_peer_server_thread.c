@@ -121,7 +121,7 @@ void test_handle_one_consensus_request_receives_peer_blockchain() {
 }
 
 void test_handle_one_consensus_request_switches_to_longest_chain() {
-    // TODO
+    // TODO use fixture
     assert_true(false);
 }
 

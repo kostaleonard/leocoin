@@ -7,12 +7,133 @@
 #define LISTEN_BACKLOG 5
 #define POLL_TIMEOUT_MILLISECONDS 100
 
-return_code_t handle_one_consensus_request(run_consensus_peer_server_args_t *args, int conn_fd) {
+return_code_t handle_one_consensus_request(
+    run_consensus_peer_server_args_t *args, int conn_fd) {
     // TODO receive command send blockchain
     // TODO make sure peer chain is valid and has same number of leading zeros required
     // TODO update to longest chain
     // TODO send back command send blockchain with new longest chain
-    return FAILURE_INVALID_INPUT;
+    return_code_t return_code = SUCCESS;
+    char *recv_buf = calloc(sizeof(command_header_t), 1);
+    if (NULL == recv_buf) {
+        return_code = FAILURE_COULD_NOT_MALLOC;
+        goto end;
+    }
+    return_code = recv_all(conn_fd, recv_buf, sizeof(command_header_t), 0);
+    if (SUCCESS != return_code) {
+        return_code = FAILURE_NETWORK_FUNCTION;
+        goto end;
+    }
+    command_header_t command_header = {0};
+    command_send_blockchain_t command_send_blockchain = {0};
+    return_code = command_header_deserialize(
+        &command_header, (unsigned char *)recv_buf, sizeof(command_header_t));
+    if (SUCCESS != return_code) {
+        goto end;
+    }
+    if (COMMAND_SEND_BLOCKCHAIN != command_header.command) {
+        return_code = FAILURE_INVALID_COMMAND;
+        goto end;
+    }
+    recv_buf = realloc(
+        recv_buf, sizeof(command_header_t) + command_header.command_len);
+    return_code = recv_all(
+        conn_fd,
+        recv_buf + sizeof(command_header_t),
+        command_header.command_len,
+        0);
+    if (SUCCESS != return_code) {
+        return_code = FAILURE_NETWORK_FUNCTION;
+        goto end;
+    }
+    return_code = command_send_blockchain_deserialize(
+        &command_send_blockchain,
+        (unsigned char *)recv_buf,
+        sizeof(command_header_t) + command_header.command_len);
+    if (SUCCESS != return_code) {
+        goto end;
+    }
+    blockchain_t *peer_blockchain = NULL;
+    return_code = blockchain_deserialize(
+        &peer_blockchain,
+        command_send_blockchain.blockchain_data,
+        command_send_blockchain.blockchain_data_len);
+    if (SUCCESS != return_code) {
+        goto end;
+    }
+    bool peer_blockchain_is_valid = false;
+    return_code = blockchain_verify(
+        peer_blockchain, &peer_blockchain_is_valid, NULL);
+    if (SUCCESS != return_code) {
+        goto end;
+    }
+    uint64_t peer_blockchain_length = 0;
+    // TODO there should really be a blockchain_length function.
+    return_code = linked_list_length(
+        peer_blockchain->block_list, &peer_blockchain_length);
+    if (SUCCESS != return_code) {
+        goto end;
+    }
+    return_code = pthread_mutex_lock(&args->sync->mutex);
+    if (SUCCESS != return_code) {
+        goto end;
+    }
+    blockchain_t *our_blockchain = args->sync->blockchain;
+    if (peer_blockchain_is_valid) {
+        uint64_t our_blockchain_length = 0;
+        return_code = linked_list_length(
+            our_blockchain->block_list, &our_blockchain_length);
+        if (SUCCESS != return_code) {
+            pthread_mutex_unlock(&args->sync->mutex);
+            goto end;
+        }
+        bool same_number_leading_zeros =
+            our_blockchain->num_leading_zero_bytes_required_in_block_hash ==
+            peer_blockchain->num_leading_zero_bytes_required_in_block_hash;
+        if (peer_blockchain_length > our_blockchain_length &&
+            same_number_leading_zeros) {
+            args->sync->blockchain = peer_blockchain;
+            // TODO test that we update version
+            atomic_fetch_add(&args->sync->version, 1);
+            return_code = blockchain_destroy(our_blockchain);
+            if (SUCCESS != return_code) {
+                pthread_mutex_unlock(&args->sync->mutex);
+                goto end;
+            }
+            // TODO print progress if we switched. Also print progress if we didn't switch.
+        }
+    }
+    our_blockchain = args->sync->blockchain;
+    free(command_send_blockchain.blockchain_data);
+    return_code = blockchain_serialize(
+        our_blockchain,
+        &command_send_blockchain.blockchain_data,
+        &command_send_blockchain.blockchain_data_len);
+    if (SUCCESS != return_code) {
+        pthread_mutex_unlock(&args->sync->mutex);
+        goto end;
+    }
+    return_code = pthread_mutex_unlock(&args->sync->mutex);
+    if (SUCCESS != return_code) {
+        goto end;
+    }
+    unsigned char *send_buf = NULL;
+    uint64_t send_buf_len = 0;
+    return_code = command_send_blockchain_serialize(
+        &command_send_blockchain, &send_buf, &send_buf_len);
+    if (SUCCESS != return_code) {
+        goto end;
+    }
+    return_code = send_all(conn_fd, send_buf, send_buf_len, 0);
+    if (SUCCESS != return_code) {
+        return_code = FAILURE_NETWORK_FUNCTION;
+        goto end;
+    }
+    free(command_send_blockchain.blockchain_data);
+    free(send_buf);
+    free(recv_buf);
+end:
+    return return_code;
 }
  
 return_code_t *run_consensus_peer_server(
