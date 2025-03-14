@@ -9,10 +9,6 @@
 
 return_code_t handle_one_consensus_request(
     run_consensus_peer_server_args_t *args, int conn_fd) {
-    // TODO receive command send blockchain
-    // TODO make sure peer chain is valid and has same number of leading zeros required
-    // TODO update to longest chain
-    // TODO send back command send blockchain with new longest chain
     return_code_t return_code = SUCCESS;
     char *recv_buf = calloc(sizeof(command_header_t), 1);
     if (NULL == recv_buf) {
@@ -68,38 +64,7 @@ return_code_t handle_one_consensus_request(
         goto end;
     }
     if (!peer_blockchain_is_valid && args->print_progress) {
-        char peer_hostname[NI_MAXHOST] = {0};
-        struct sockaddr_in6 peer_addr = {0};
-        int peer_addr_len = sizeof(struct sockaddr_in6);
-        if (0 != getsockname(conn_fd, (struct sockaddr *)&peer_addr, &peer_addr_len)) {
-            return_code = FAILURE_NETWORK_FUNCTION;
-            goto end;
-        }
-        if (0 != getnameinfo(
-            (struct sockaddr *)&peer_addr,
-            sizeof(struct sockaddr_in6),
-            peer_hostname,
-            NI_MAXHOST,
-            NULL,
-            0,
-            0)) {
-            return_code = FAILURE_NETWORK_FUNCTION;
-            goto end;
-        }
-        char peer_addr_str[INET6_ADDRSTRLEN] = {0};
-        if (NULL == inet_ntop(
-            AF_INET6,
-            &peer_addr.sin6_addr,
-            peer_addr_str,
-            INET6_ADDRSTRLEN)) {
-            return_code = FAILURE_NETWORK_FUNCTION;
-            goto end;
-        }
-        printf(
-            "Server received invalid blockchain from %s (%s):%d\n",
-            peer_hostname,
-            peer_addr_str,
-            htons(peer_addr.sin6_port));
+        printf("Server received invalid blockchain\n");
     }
     uint64_t peer_blockchain_length = 0;
     // TODO there should really be a blockchain_length function.
@@ -134,7 +99,14 @@ return_code_t handle_one_consensus_request(
                 pthread_mutex_unlock(&args->sync->mutex);
                 goto end;
             }
-            // TODO print progress if we switched. Also print progress if we didn't switch.
+            if (args->print_progress) {
+                printf(
+                    "Server switched to longer blockchain: %lld -> %lld\n",
+                    our_blockchain_length,
+                    peer_blockchain_length);
+            }
+        } else if (args->print_progress) {
+            printf("Server did not switch blockchain\n");
         }
     }
     our_blockchain = args->sync->blockchain;
