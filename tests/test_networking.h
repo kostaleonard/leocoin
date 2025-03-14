@@ -59,6 +59,24 @@ void test_command_send_peer_list_deserialize_fails_on_invalid_command();
 
 void test_command_send_peer_list_deserialize_fails_on_invalid_input();
 
+void test_command_send_blockchain_serialize_fails_on_invalid_input();
+
+void test_command_send_blockchain_serialize_fails_on_invalid_prefix();
+
+void test_command_send_blockchain_serialize_fails_on_invalid_command();
+
+void test_command_send_blockchain_serialize_creates_nonempty_buffer();
+
+void test_command_send_blockchain_deserialize_reconstructs_command();
+
+void test_command_send_blockchain_deserialize_fails_on_read_past_buffer();
+
+void test_command_send_blockchain_deserialize_fails_on_invalid_prefix();
+
+void test_command_send_blockchain_deserialize_fails_on_invalid_command();
+
+void test_command_send_blockchain_deserialize_fails_on_invalid_input();
+
 void test_recv_all_reads_data_from_socket();
 
 void test_recv_all_handles_partial_read();

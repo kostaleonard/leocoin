@@ -346,6 +346,123 @@ end:
     return return_code;
 }
 
+return_code_t command_send_blockchain_serialize(
+    command_send_blockchain_t *command_send_blockchain,
+    unsigned char **buffer,
+    uint64_t *buffer_size) {
+    return_code_t return_code = SUCCESS;
+    if (NULL == command_send_blockchain ||
+        NULL == buffer ||
+        NULL == buffer_size) {
+        return_code = FAILURE_INVALID_INPUT;
+        goto end;
+    }
+    if (COMMAND_SEND_BLOCKCHAIN != command_send_blockchain->header.command) {
+        return_code = FAILURE_INVALID_COMMAND;
+        goto end;
+    }
+    uint64_t send_blockchain_size = sizeof(uint64_t);
+    unsigned char *send_command_buffer = calloc(1, send_blockchain_size);
+    if (NULL == send_command_buffer) {
+        return_code = FAILURE_COULD_NOT_MALLOC;
+        goto end;
+    }
+    unsigned char *next_spot_in_buffer = send_command_buffer;
+    *(uint64_t *)next_spot_in_buffer = htobe64(
+        command_send_blockchain->blockchain_data_len);
+    next_spot_in_buffer += sizeof(uint64_t);
+    command_send_blockchain->header.command_len =
+        send_blockchain_size + command_send_blockchain->blockchain_data_len;
+    unsigned char *header_buffer = NULL;
+    uint64_t header_size = 0;
+    return_code = command_header_serialize(
+        &command_send_blockchain->header, &header_buffer, &header_size);
+    if (SUCCESS != return_code) {
+        free(send_command_buffer);
+        goto end;
+    }
+    uint64_t total_size =
+        header_size +
+        send_blockchain_size +
+        command_send_blockchain->blockchain_data_len;
+    unsigned char *total_buffer = calloc(1, total_size);
+    if (NULL == total_buffer) {
+        free(header_buffer);
+        free(send_command_buffer);
+        return_code = FAILURE_COULD_NOT_MALLOC;
+        goto end;
+    }
+    memcpy(total_buffer, header_buffer, header_size);
+    memcpy(
+        total_buffer + header_size, send_command_buffer, send_blockchain_size);
+    memcpy(
+        total_buffer + header_size + send_blockchain_size,
+        command_send_blockchain->blockchain_data,
+        command_send_blockchain->blockchain_data_len);
+    free(header_buffer);
+    free(send_command_buffer);
+    *buffer = total_buffer;
+    *buffer_size = total_size;
+end:
+    return return_code;
+}
+
+return_code_t command_send_blockchain_deserialize(
+    command_send_blockchain_t *command_send_blockchain,
+    unsigned char *buffer,
+    uint64_t buffer_size) {
+    return_code_t return_code = SUCCESS;
+    if (NULL == command_send_blockchain || NULL == buffer) {
+        return_code = FAILURE_INVALID_INPUT;
+        goto end;
+    }
+    command_send_blockchain_t deserialized_command_send_blockchain = {0};
+    return_code = command_header_deserialize(
+        &deserialized_command_send_blockchain.header, buffer, buffer_size);
+    if (SUCCESS != return_code) {
+        goto end;
+    }
+    if (COMMAND_SEND_BLOCKCHAIN !=
+        deserialized_command_send_blockchain.header.command) {
+        return_code = FAILURE_INVALID_COMMAND;
+        goto end;
+    }
+    unsigned char *next_spot_in_buffer = buffer + sizeof(command_header_t);
+    ptrdiff_t total_read_size = next_spot_in_buffer + sizeof(uint64_t) - buffer;
+    if (total_read_size > buffer_size) {
+        return_code = FAILURE_BUFFER_TOO_SMALL;
+        goto end;
+    }
+    deserialized_command_send_blockchain.blockchain_data_len = betoh64(
+        *(uint64_t *)next_spot_in_buffer);
+    next_spot_in_buffer += sizeof(uint64_t);
+    total_read_size += deserialized_command_send_blockchain.blockchain_data_len;
+    if (total_read_size > buffer_size) {
+        return_code = FAILURE_BUFFER_TOO_SMALL;
+        goto end;
+    }
+    deserialized_command_send_blockchain.blockchain_data = calloc(
+        deserialized_command_send_blockchain.blockchain_data_len, 1);
+    if (NULL == deserialized_command_send_blockchain.blockchain_data) {
+        return_code = FAILURE_COULD_NOT_MALLOC;
+        goto end;
+    }
+    for (
+        uint64_t idx = 0;
+        idx < deserialized_command_send_blockchain.blockchain_data_len;
+        idx++) {
+        deserialized_command_send_blockchain.blockchain_data[idx] =
+            *next_spot_in_buffer;
+        next_spot_in_buffer++;
+    }
+    memcpy(
+        command_send_blockchain,
+        &deserialized_command_send_blockchain,
+        sizeof(command_send_blockchain_t));
+end:
+    return return_code;
+}
+
 return_code_t recv_all(int sockfd, void *buf, size_t len, int flags) {
     return_code_t return_code = SUCCESS;
     if (NULL == buf) {

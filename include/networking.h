@@ -17,6 +17,7 @@
     #include <sys/socket.h>
     #include <sys/types.h>
     #include <unistd.h>
+    #include <poll.h>
     #ifndef IN6_ADDR
         typedef struct in6_addr IN6_ADDR;
     #endif
@@ -45,6 +46,7 @@ typedef enum command_t {
     COMMAND_ERROR,
     COMMAND_REGISTER_PEER,
     COMMAND_SEND_PEER_LIST,
+    COMMAND_SEND_BLOCKCHAIN,
 } command_t;
 
 /**
@@ -108,6 +110,19 @@ typedef struct command_send_peer_list_t {
     uint64_t peer_list_data_len;
     unsigned char *peer_list_data;
 } command_send_peer_list_t;
+
+/**
+ * @brief Contains the serialized blockchain.
+ * 
+ * @param header The command header.
+ * @param blockchain_data_len The number of bytes in blockchain_data.
+ * @param blockchain_data The serialized blockchain.
+ */
+typedef struct command_send_blockchain_t {
+    command_header_t header;
+    uint64_t blockchain_data_len;
+    unsigned char *blockchain_data;
+} command_send_blockchain_t;
 
 /**
  * @brief Serializes the header into a buffer.
@@ -196,6 +211,37 @@ return_code_t command_send_peer_list_serialize(
  */
 return_code_t command_send_peer_list_deserialize(
     command_send_peer_list_t *command_send_peer_list,
+    unsigned char *buffer,
+    uint64_t buffer_size);
+
+/**
+ * @brief Serializes the send blockchain command into a buffer.
+ * 
+ * @param command_send_blockchain The command. This function will set the
+ * command_len field in the command's header.
+ * @param buffer A pointer to fill with the bytes representing the command.
+ * Callers must free the buffer.
+ * @param buffer_size A pointer to fill with the final size of the buffer.
+ * @return return_code_t A return code indicating success or failure.
+ */
+return_code_t command_send_blockchain_serialize(
+    command_send_blockchain_t *command_send_blockchain,
+    unsigned char **buffer,
+    uint64_t *buffer_size);
+
+/**
+ * @brief Deserializes a send blockchain command from the buffer.
+ * 
+ * @param command_send_peer_list A pointer to fill with the deserialized send
+ * blockchain command data. If the buffer contains a valid send blockchain
+ * command, this pointer will be filled with data and the function will return
+ * SUCCESS.
+ * @param buffer The buffer. The data in the buffer is in network byte order.
+ * @param buffer_size The length of the buffer.
+ * @return return_code_t A return code indicating success or failure.
+ */
+return_code_t command_send_blockchain_deserialize(
+    command_send_blockchain_t *command_send_blockchain,
     unsigned char *buffer,
     uint64_t buffer_size);
 

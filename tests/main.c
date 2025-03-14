@@ -27,6 +27,7 @@
 #include "tests/test_sleep.h"
 #include "tests/test_peer_discovery_thread.h"
 #include "tests/test_peer_discovery_bootstrap_server_thread.h"
+#include "tests/test_consensus_peer_server_thread.h"
 
 int _unlink_callback(
     const char *fpath,
@@ -224,7 +225,7 @@ int main(int argc, char **argv) {
         cmocka_unit_test(test_htobe64_correctly_encodes_data),
         cmocka_unit_test(test_betoh64_correctly_decodes_data),
         // test_mining_thread.h
-        // These multithreaded tests are incredibly slow in valgrind.
+        // These tests are slow in valgrind.
         // They run very fast outside of valgrind.
         # ifdef RUN_SLOWTESTS
             cmocka_unit_test(test_mine_blocks_exits_when_should_stop_is_set),
@@ -287,6 +288,24 @@ int main(int argc, char **argv) {
             test_command_send_peer_list_deserialize_fails_on_invalid_command),
         cmocka_unit_test(
             test_command_send_peer_list_deserialize_fails_on_invalid_input),
+        cmocka_unit_test(
+            test_command_send_blockchain_serialize_fails_on_invalid_input),
+        cmocka_unit_test(
+            test_command_send_blockchain_serialize_fails_on_invalid_prefix),
+        cmocka_unit_test(
+            test_command_send_blockchain_serialize_fails_on_invalid_command),
+        cmocka_unit_test(
+            test_command_send_blockchain_serialize_creates_nonempty_buffer),
+        cmocka_unit_test(
+            test_command_send_blockchain_deserialize_reconstructs_command),
+        cmocka_unit_test(
+            test_command_send_blockchain_deserialize_fails_on_read_past_buffer),
+        cmocka_unit_test(
+            test_command_send_blockchain_deserialize_fails_on_invalid_prefix),
+        cmocka_unit_test(
+            test_command_send_blockchain_deserialize_fails_on_invalid_command),
+        cmocka_unit_test(
+            test_command_send_blockchain_deserialize_fails_on_invalid_input),
         cmocka_unit_test_teardown(
             test_recv_all_reads_data_from_socket, teardown),
         cmocka_unit_test_teardown(test_recv_all_handles_partial_read, teardown),
@@ -320,6 +339,18 @@ int main(int argc, char **argv) {
         cmocka_unit_test_teardown(
             test_handle_peer_discovery_requests_exits_when_should_stop_is_set,
             teardown),
+        // test_consensus_peer_server_thread.h
+        cmocka_unit_test_teardown(
+            test_handle_one_consensus_request_receives_peer_blockchain,
+            teardown),
+        cmocka_unit_test_teardown(
+            test_handle_one_consensus_request_switches_to_longest_chain,
+            teardown),
+        cmocka_unit_test_teardown(
+            test_handle_one_consensus_request_rejects_invalid_chain,
+            teardown),
+        cmocka_unit_test(
+            test_run_consensus_peer_server_exits_when_should_stop_is_set),
     };
     return_code = cmocka_run_group_tests(tests, NULL, teardown);
     #ifdef _WIN32
