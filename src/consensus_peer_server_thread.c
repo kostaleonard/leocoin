@@ -67,7 +67,6 @@ return_code_t handle_one_consensus_request(
         printf("Server received invalid blockchain\n");
     }
     uint64_t peer_blockchain_length = 0;
-    // TODO there should really be a blockchain_length function.
     return_code = linked_list_length(
         peer_blockchain->block_list, &peer_blockchain_length);
     if (SUCCESS != return_code) {
@@ -92,7 +91,6 @@ return_code_t handle_one_consensus_request(
         if (peer_blockchain_length > our_blockchain_length &&
             same_number_leading_zeros) {
             args->sync->blockchain = peer_blockchain;
-            // TODO test that we update version
             atomic_fetch_add(&args->sync->version, 1);
             return_code = blockchain_destroy(our_blockchain);
             if (SUCCESS != return_code) {

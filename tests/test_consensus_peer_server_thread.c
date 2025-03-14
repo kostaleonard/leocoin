@@ -218,6 +218,7 @@ void test_handle_one_consensus_request_switches_to_longest_chain() {
     args.exit_ready = &exit_ready;
     pthread_cond_init(&args.exit_ready_cond, NULL);
     pthread_mutex_init(&args.exit_ready_mutex, NULL);
+    atomic_size_t original_sync_version = atomic_load(&sync->version);
     return_code = handle_one_consensus_request(&args, conn_fd);
     assert_true(SUCCESS == return_code);
     uint64_t new_blockchain_len = 0;
@@ -225,6 +226,8 @@ void test_handle_one_consensus_request_switches_to_longest_chain() {
         args.sync->blockchain->block_list, &new_blockchain_len);
     assert_true(SUCCESS == return_code);
     assert_true(4 == new_blockchain_len);
+    atomic_size_t new_sync_version = atomic_load(&sync->version);
+    assert_true(new_sync_version > original_sync_version);
     free(send_blockchain_buffer);
     free(command_send_blockchain.blockchain_data);
     pthread_cond_destroy(&args.exit_ready_cond);
