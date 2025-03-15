@@ -7,6 +7,8 @@ return_code_t *run_consensus_peer_client(
 }
 
 void *run_consensus_peer_client_pthread_wrapper(void *args) {
-    // TODO
-    return NULL;
+    run_consensus_peer_client_args_t *client_args =
+        (run_consensus_peer_client_args_t *)args;
+    return_code_t *return_code_ptr = run_consensus_peer_client(client_args);
+    return (void *)return_code_ptr;
 }
