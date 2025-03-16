@@ -111,6 +111,7 @@ void test_run_consensus_peer_client_once_receives_peer_blockchain() {
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
     synchronized_blockchain_destroy(args.sync);
+    linked_list_destroy(peer_info_list);
 }
 
 void test_run_consensus_peer_client_once_switches_to_longest_chain() {
@@ -226,6 +227,7 @@ void test_run_consensus_peer_client_once_switches_to_longest_chain() {
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
     synchronized_blockchain_destroy(args.sync);
+    linked_list_destroy(peer_info_list);
 }
 
 void test_run_consensus_peer_client_once_rejects_invalid_chain() {
@@ -337,6 +339,7 @@ void test_run_consensus_peer_client_once_rejects_invalid_chain() {
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
     synchronized_blockchain_destroy(args.sync);
+    linked_list_destroy(peer_info_list);
 }
 
 void test_run_consensus_peer_client_exits_when_should_stop_is_set() {
@@ -418,4 +421,5 @@ void test_run_consensus_peer_client_exits_when_should_stop_is_set() {
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
     synchronized_blockchain_destroy(args.sync);
+    linked_list_destroy(peer_info_list);
 }
