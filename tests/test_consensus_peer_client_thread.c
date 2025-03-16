@@ -91,7 +91,7 @@ void test_run_consensus_peer_client_once_receives_peer_blockchain() {
     args.sync = sync;
     args.peer_info_list = peer_info_list;
     pthread_mutex_init(&args.peer_info_list_mutex, NULL);
-    args.print_progress = false;
+    args.print_progress = true; // TODO false
     atomic_bool should_stop = false;
     args.should_stop = &should_stop;
     bool exit_ready = false;
