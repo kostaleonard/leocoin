@@ -20,6 +20,9 @@ typedef struct run_consensus_peer_client_args_t {
     pthread_mutex_t exit_ready_mutex;
 } run_consensus_peer_client_args_t;
 
+return_code_t run_consensus_peer_client_once(
+    run_consensus_peer_client_args_t *args, peer_info_t *peer);
+
 return_code_t *run_consensus_peer_client(
     run_consensus_peer_client_args_t *args);
 

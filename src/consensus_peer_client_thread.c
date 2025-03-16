@@ -5,18 +5,15 @@
 return_code_t run_consensus_peer_client_once(
     run_consensus_peer_client_args_t *args, peer_info_t *peer) {
     return_code_t return_code = SUCCESS;
-    // TODO
+    // TODO connect to peer
+    // TODO send and receive blockchain
+    // TODO update longest chain
     return return_code;
 }
 
 return_code_t *run_consensus_peer_client(
     run_consensus_peer_client_args_t *args) {
     return_code_t return_code = SUCCESS;
-    // TODO lock, make copy of peer list, unlock
-    // TODO iterate over peer list
-    // TODO connect to peer
-    // TODO send and receive blockchain
-    // TODO update longest chain
     linked_list_t *peer_info_list_copy = NULL;
     return_code = linked_list_create(
         &peer_info_list_copy, free, compare_peer_info_t);

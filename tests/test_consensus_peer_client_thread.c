@@ -8,6 +8,119 @@
 #include "include/peer_discovery.h"
 #include "include/consensus_peer_client_thread.h"
 #include "tests/test_consensus_peer_client_thread.h"
+#include "tests/mocks.h"
+
+void test_run_consensus_peer_client_once_receives_peer_blockchain() {
+    wrap_connect = mock_connect;
+    wrap_recv = mock_recv;
+    wrap_send = mock_send;
+    command_header_t command_header = COMMAND_HEADER_INITIALIZER;
+    command_header.command = COMMAND_SEND_BLOCKCHAIN;
+    command_header.command_len = 0;
+    command_send_blockchain_t command_send_blockchain = {0};
+    command_send_blockchain.header = command_header;
+    blockchain_t *peer_blockchain = NULL;
+    size_t num_zero_bytes = 3;
+    return_code_t return_code = blockchain_create(
+        &peer_blockchain, num_zero_bytes);
+    assert_true(SUCCESS == return_code);
+    block_t *genesis_block = NULL;
+    return_code = block_create_genesis_block(&genesis_block);
+    genesis_block->created_at = 100;
+    assert_true(SUCCESS == return_code);
+    return_code = blockchain_add_block(peer_blockchain, genesis_block);
+    assert_true(SUCCESS == return_code);
+    return_code = blockchain_serialize(
+        peer_blockchain,
+        &command_send_blockchain.blockchain_data,
+        &command_send_blockchain.blockchain_data_len);
+    assert_true(SUCCESS == return_code);
+    unsigned char *send_blockchain_buffer = NULL;
+    uint64_t send_blockchain_buffer_len = 0;
+    return_code = command_send_blockchain_serialize(
+        &command_send_blockchain,
+        &send_blockchain_buffer,
+        &send_blockchain_buffer_len);
+    assert_true(SUCCESS == return_code);
+    will_return(mock_recv, send_blockchain_buffer);
+    will_return(mock_recv, sizeof(command_header_t));
+    will_return(
+        mock_recv, send_blockchain_buffer + sizeof(command_header_t));
+    will_return(
+        mock_recv,
+        send_blockchain_buffer_len - sizeof(command_header_t));
+    will_return_always(mock_send, 1);
+    blockchain_t *blockchain = NULL;
+    return_code = blockchain_create(&blockchain, num_zero_bytes);
+    assert_true(SUCCESS == return_code);
+    return_code = block_create_genesis_block(&genesis_block);
+    genesis_block->created_at = 200;
+    assert_true(SUCCESS == return_code);
+    return_code = blockchain_add_block(blockchain, genesis_block);
+    assert_true(SUCCESS == return_code);
+    synchronized_blockchain_t *sync = NULL;
+    return_code = synchronized_blockchain_create(&sync, blockchain);
+    assert_true(SUCCESS == return_code);
+    linked_list_t *peer_info_list = NULL;
+    return_code = linked_list_create(
+        &peer_info_list, free, compare_peer_info_t);
+    assert_true(SUCCESS == return_code);
+    peer_info_t *peer1 = calloc(1, sizeof(peer_info_t));
+    peer1->listen_addr.sin6_family = AF_INET6;
+    peer1->listen_addr.sin6_port = htons(12345);
+    peer1->listen_addr.sin6_flowinfo = 0;
+    ((unsigned char *)(&peer1->listen_addr.sin6_addr))[
+        sizeof(IN6_ADDR) - 1] = 1;
+    peer1->listen_addr.sin6_scope_id = 0;
+    peer1->last_connected = 100;
+    peer_info_t *peer2 = calloc(1, sizeof(peer_info_t));
+    peer2->listen_addr.sin6_family = AF_INET6;
+    peer2->listen_addr.sin6_port = htons(23456);
+    peer2->listen_addr.sin6_flowinfo = 0;
+    ((unsigned char *)(&peer2->listen_addr.sin6_addr))[0] = 0xfe;
+    ((unsigned char *)(&peer2->listen_addr.sin6_addr))[1] = 0x80;
+    ((unsigned char *)(&peer2->listen_addr.sin6_addr))[
+        sizeof(IN6_ADDR) - 1] = 1;
+    peer2->listen_addr.sin6_scope_id = 0;
+    peer2->last_connected = 200;
+    return_code = linked_list_prepend(peer_info_list, peer2);
+    assert_true(SUCCESS == return_code);
+    return_code = linked_list_prepend(peer_info_list, peer1);
+    assert_true(SUCCESS == return_code);
+    run_consensus_peer_client_args_t args = {0};
+    args.sync = sync;
+    args.peer_info_list = peer_info_list;
+    pthread_mutex_init(&args.peer_info_list_mutex, NULL);
+    args.print_progress = false;
+    atomic_bool should_stop = false;
+    args.should_stop = &should_stop;
+    bool exit_ready = false;
+    args.exit_ready = &exit_ready;
+    pthread_cond_init(&args.exit_ready_cond, NULL);
+    pthread_mutex_init(&args.exit_ready_mutex, NULL);
+    return_code = run_consensus_peer_client_once(&args, peer1);
+    assert_true(SUCCESS == return_code);
+    block_t *updated_genesis_block =
+        (block_t *)args.sync->blockchain->block_list->head->data;
+    // No change in blockchain because the peer's blockchain was not bigger.
+    assert_true(200 == updated_genesis_block->created_at);
+    blockchain_destroy(peer_blockchain);
+    free(send_blockchain_buffer);
+    free(command_send_blockchain.blockchain_data);
+    pthread_cond_destroy(&args.exit_ready_cond);
+    pthread_mutex_destroy(&args.exit_ready_mutex);
+    synchronized_blockchain_destroy(args.sync);
+}
+
+void test_run_consensus_peer_client_once_switches_to_longest_chain() {
+    // TODO
+    assert_true(false);
+}
+
+void test_run_consensus_peer_client_once_rejects_invalid_chain() {
+    // TODO
+    assert_true(false);
+}
 
 void test_run_consensus_peer_client_exits_when_should_stop_is_set() {
     blockchain_t *blockchain = NULL;
@@ -54,9 +167,9 @@ void test_run_consensus_peer_client_exits_when_should_stop_is_set() {
     args.peer_info_list = peer_info_list;
     pthread_mutex_init(&args.peer_info_list_mutex, NULL);
     args.print_progress = false;
-    atomic_bool should_stop = false;
+    atomic_bool should_stop = true;
     args.should_stop = &should_stop;
-    bool exit_ready = true; // TODO try setting to false and using a circularly linked peer list
+    bool exit_ready = false;
     args.exit_ready = &exit_ready;
     pthread_cond_init(&args.exit_ready_cond, NULL);
     pthread_mutex_init(&args.exit_ready_mutex, NULL);
