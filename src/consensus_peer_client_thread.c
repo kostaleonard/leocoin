@@ -241,7 +241,7 @@ end:
     pthread_mutex_unlock(&args->exit_ready_mutex);
     return_code_t *return_code_ptr = malloc(sizeof(return_code_t));
     *return_code_ptr = return_code;
-    return return_code_ptr;  
+    return return_code_ptr;
 }
 
 void *run_consensus_peer_client_pthread_wrapper(void *args) {

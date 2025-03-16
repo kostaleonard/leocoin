@@ -353,7 +353,6 @@ int main(int argc, char **argv) {
         cmocka_unit_test(
             test_run_consensus_peer_server_exits_when_should_stop_is_set),
         // test_consensus_peer_client_thread.h
-        // TODO use teardowns for the tests that use mocks
         cmocka_unit_test_teardown(
             test_run_consensus_peer_client_once_receives_peer_blockchain,
             teardown),
