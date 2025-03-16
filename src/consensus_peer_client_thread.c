@@ -6,9 +6,6 @@
 return_code_t run_consensus_peer_client_once(
     run_consensus_peer_client_args_t *args, peer_info_t *peer) {
     return_code_t return_code = SUCCESS;
-    // TODO connect to peer
-    // TODO send and receive blockchain
-    // TODO update longest chain
     if (args->print_progress) {
         printf("Attempting to connect to peer consensus server.\n");
     }
