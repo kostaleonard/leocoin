@@ -1,28 +1,29 @@
 /**
- * @brief Contains functions for the consensus peer server.
+ * @brief Contains functions for the consensus peer client.
  * 
- * The consensus peer server receives new blocks and new transactions from
- * peers.
+ * The consensus peer client exchanges blockchains with peers.
  */
 
-#ifndef INCLUDE_CONSENSUS_PEER_SERVER_THREAD_H_
-#define INCLUDE_CONSENSUS_PEER_SERVER_THREAD_H_
+#ifndef INCLUDE_CONSENSUS_PEER_CLIENT_THREAD_H_
+#define INCLUDE_CONSENSUS_PEER_CLIENT_THREAD_H_
 #include <pthread.h>
 #include <stdatomic.h>
 #include "include/return_codes.h"
+#include "include/linked_list.h"
 #include "include/blockchain.h"
 
 /**
- * @brief Contains the arguments to the run_consensus_peer_server function.
+ * @brief Contains the arguments to the run_consensus_peer_client function.
  * 
  * This struct packages arguments so that users can call
- * run_consensus_peer_server in pthread_create.
+ * run_consensus_peer_client in pthread_create.
  * 
- * @param consensus_peer_server_addr The address on which to listen for peer
- * connections.
- * @param sync A reference to the synchronized blockchain. The server will
+ * @param sync A reference to the synchronized blockchain. The client will
  * update the synchronized blockchain whenever it receives a longer chain that
  * is valid and has the same number of leading zeros required.
+ * @param peer_info_list The list of peers that this client is aware of. Each
+ * entry is a peer_info_t struct.
+ * @param peer_info_list_mutex Protects peer_info_list.
  * @param print_progress If true, display progress on the screen.
  * @param should_stop This should initially be false. Setting this flag while
  * the function is running requests that the function terminate gracefully.
@@ -40,37 +41,38 @@
  * and the thread will not join.
  * @param exit_ready_mutex Protects exit_ready and exit_ready_cond.
  */
-typedef struct run_consensus_peer_server_args_t {
-    struct sockaddr_in6 consensus_peer_server_addr;
+typedef struct run_consensus_peer_client_args_t {
     synchronized_blockchain_t *sync;
+    linked_list_t *peer_info_list;
+    pthread_mutex_t peer_info_list_mutex;
     bool print_progress;
     atomic_bool *should_stop;
     bool *exit_ready;
     pthread_cond_t exit_ready_cond;
     pthread_mutex_t exit_ready_mutex;
-} run_consensus_peer_server_args_t;
+} run_consensus_peer_client_args_t;
 
 /**
- * @brief Receives one send blockchain command and sends the new longest chain.
+ * @brief Sends one send blockchain command to a peer.
  * 
- * @param conn_fd The open socket with the connected peer.
+ * @param peer The peer to which to connect.
  * @return return_code_t A return code indicating success or failure.
  */
-return_code_t handle_one_consensus_request(
-    run_consensus_peer_server_args_t *args, int conn_fd);
+return_code_t run_consensus_peer_client_once(
+    run_consensus_peer_client_args_t *args, peer_info_t *peer);
 
 /**
- * @brief Receives peer blockchains and transactions until interrupted.
+ * @brief Exchanges blockchains with all peers in the peer list, then exits.
  * 
  * @return return_code_t A pointer to a return code indicating success or
  * failure. Callers must free.
  */
-return_code_t *run_consensus_peer_server(
-    run_consensus_peer_server_args_t *args);
+return_code_t *run_consensus_peer_client(
+    run_consensus_peer_client_args_t *args);
 
 /**
- * @brief Calls run_consensus_peer_server on args.
+ * @brief Calls run_consensus_peer_client on args.
  */
-void *run_consensus_peer_server_pthread_wrapper(void *args);
+void *run_consensus_peer_client_pthread_wrapper(void *args);
 
-#endif  // INCLUDE_CONSENSUS_PEER_SERVER_THREAD_H_
+#endif  // INCLUDE_CONSENSUS_PEER_CLIENT_THREAD_H_
