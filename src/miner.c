@@ -33,6 +33,7 @@ void print_usage_statement(char *program_name) {
         "[peer_discovery_bootstrap_server_ipv6_address] "
         "[peer_discovery_bootstrap_server_port] "
         "-i [communication_interval_seconds] "
+        "-n [num_leading_zeros] "
         "-p [private_key_file_base64_encoded_contents] "
         "-k [public_key_file_base64_encoded_contents]\n",
         program_name);
@@ -54,13 +55,14 @@ int main(int argc, char **argv) {
     }
     uint64_t communication_interval_seconds =
         DEFAULT_COMMUNICATION_INTERVAL_SECONDS;
+    size_t num_leading_zeros = NUM_LEADING_ZERO_BYTES_IN_BLOCK_HASH;
     char *ssh_private_key_contents_base64 = NULL;
     char *ssh_public_key_contents_base64 = NULL;
     int opt;
     while ((opt = getopt(
         argc - num_positional_args,
         argv + num_positional_args,
-        "i:p:k:")) != -1) {
+        "i:p:k:n:")) != -1) {
         switch (opt) {
             case 'i':
                 communication_interval_seconds = strtol(optarg, NULL, 10);
@@ -72,6 +74,9 @@ int main(int argc, char **argv) {
             case 'k':
                 printf("Using public key from argv\n");
                 ssh_public_key_contents_base64 = optarg;
+                break;
+            case 'n':
+                num_leading_zeros = strtol(optarg, NULL, 10);
                 break;
             default:
                 print_usage_statement(argv[0]);
@@ -198,8 +203,7 @@ int main(int argc, char **argv) {
     printf("Using public key: %s\n", miner_public_key.bytes);
     blockchain_t *blockchain = NULL;
     block_t *genesis_block = NULL;
-    return_code = blockchain_create(
-        &blockchain, 2); // TODO NUM_LEADING_ZERO_BYTES_IN_BLOCK_HASH
+    return_code = blockchain_create(&blockchain, num_leading_zeros);
     if (SUCCESS != return_code) {
         goto end;
     }
