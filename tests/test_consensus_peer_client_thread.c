@@ -90,8 +90,10 @@ void test_run_consensus_peer_client_once_receives_peer_blockchain() {
     assert_true(SUCCESS == return_code);
     run_consensus_peer_client_args_t args = {0};
     args.sync = sync;
-    args.peer_info_list = peer_info_list;
-    pthread_mutex_init(&args.peer_info_list_mutex, NULL);
+    args.peer_info_list = &peer_info_list;
+    pthread_mutex_t peer_info_list_mutex;
+    pthread_mutex_init(&peer_info_list_mutex, NULL);
+    args.peer_info_list_mutex = &peer_info_list_mutex;
     args.print_progress = false;
     atomic_bool should_stop = false;
     args.should_stop = &should_stop;
@@ -198,8 +200,10 @@ void test_run_consensus_peer_client_once_switches_to_longest_chain() {
     assert_true(SUCCESS == return_code);
     run_consensus_peer_client_args_t args = {0};
     args.sync = sync;
-    args.peer_info_list = peer_info_list;
-    pthread_mutex_init(&args.peer_info_list_mutex, NULL);
+    args.peer_info_list = &peer_info_list;
+    pthread_mutex_t peer_info_list_mutex;
+    pthread_mutex_init(&peer_info_list_mutex, NULL);
+    args.peer_info_list_mutex = &peer_info_list_mutex;
     args.print_progress = false;
     atomic_bool should_stop = false;
     args.should_stop = &should_stop;
@@ -221,6 +225,7 @@ void test_run_consensus_peer_client_once_switches_to_longest_chain() {
     assert_true(4 == new_blockchain_len);
     atomic_size_t new_sync_version = atomic_load(&sync->version);
     assert_true(new_sync_version > original_sync_version);
+    blockchain_destroy(blockchain);
     blockchain_destroy(peer_blockchain);
     free(send_blockchain_buffer);
     free(command_send_blockchain.blockchain_data);
@@ -318,8 +323,10 @@ void test_run_consensus_peer_client_once_rejects_invalid_chain() {
     assert_true(SUCCESS == return_code);
     run_consensus_peer_client_args_t args = {0};
     args.sync = sync;
-    args.peer_info_list = peer_info_list;
-    pthread_mutex_init(&args.peer_info_list_mutex, NULL);
+    args.peer_info_list = &peer_info_list;
+    pthread_mutex_t peer_info_list_mutex;
+    pthread_mutex_init(&peer_info_list_mutex, NULL);
+    args.peer_info_list_mutex = &peer_info_list_mutex;
     args.print_progress = false;
     atomic_bool should_stop = false;
     args.should_stop = &should_stop;
@@ -384,8 +391,10 @@ void test_run_consensus_peer_client_exits_when_should_stop_is_set() {
     assert_true(SUCCESS == return_code);
     run_consensus_peer_client_args_t args = {0};
     args.sync = sync;
-    args.peer_info_list = peer_info_list;
-    pthread_mutex_init(&args.peer_info_list_mutex, NULL);
+    args.peer_info_list = &peer_info_list;
+    pthread_mutex_t peer_info_list_mutex;
+    pthread_mutex_init(&peer_info_list_mutex, NULL);
+    args.peer_info_list_mutex = &peer_info_list_mutex;
     args.print_progress = false;
     atomic_bool should_stop = true;
     args.should_stop = &should_stop;
@@ -417,7 +426,7 @@ void test_run_consensus_peer_client_exits_when_should_stop_is_set() {
     return_code_t *return_code_ptr = (return_code_t *)retval;
     assert_true(NULL != return_code_ptr);
     free(return_code_ptr);
-    pthread_mutex_destroy(&args.peer_info_list_mutex);
+    pthread_mutex_destroy(args.peer_info_list_mutex);
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
     synchronized_blockchain_destroy(args.sync);

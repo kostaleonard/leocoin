@@ -8,6 +8,7 @@
 #define INCLUDE_CONSENSUS_PEER_CLIENT_THREAD_H_
 #include <pthread.h>
 #include <stdatomic.h>
+#include "include/peer_discovery.h"
 #include "include/return_codes.h"
 #include "include/linked_list.h"
 #include "include/blockchain.h"
@@ -43,8 +44,8 @@
  */
 typedef struct run_consensus_peer_client_args_t {
     synchronized_blockchain_t *sync;
-    linked_list_t *peer_info_list;
-    pthread_mutex_t peer_info_list_mutex;
+    linked_list_t **peer_info_list;
+    pthread_mutex_t *peer_info_list_mutex;
     bool print_progress;
     atomic_bool *should_stop;
     bool *exit_ready;

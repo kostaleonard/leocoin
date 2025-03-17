@@ -144,11 +144,6 @@ return_code_t run_consensus_peer_client_once(
             args->sync->blockchain = peer_blockchain;
             atomic_fetch_add(&args->sync->version, 1);
             switched_to_peer_chain = true;
-            return_code = blockchain_destroy(our_blockchain);
-            if (SUCCESS != return_code) {
-                pthread_mutex_unlock(&args->sync->mutex);
-                goto end;
-            }
             if (args->print_progress) {
                 printf(
                     "Client switched to longer blockchain: "
@@ -191,19 +186,19 @@ return_code_t *run_consensus_peer_client(
     if (SUCCESS != return_code) {
         goto end;
     }
-    return_code = pthread_mutex_lock(&args->peer_info_list_mutex);
+    return_code = pthread_mutex_lock(args->peer_info_list_mutex);
     if (SUCCESS != return_code) {
         linked_list_destroy(peer_info_list_copy);
         goto end;
     }
-    for (node_t *node = args->peer_info_list->head;
+    for (node_t *node = (*args->peer_info_list)->head;
         NULL != node;
         node = node->next) {
         peer_info_t *peer = (peer_info_t *)node->data;
         peer_info_t *peer_copy = calloc(1, sizeof(peer_info_t));
         if (NULL == peer_copy) {
             linked_list_destroy(peer_info_list_copy);
-            pthread_mutex_unlock(&args->peer_info_list_mutex);
+            pthread_mutex_unlock(args->peer_info_list_mutex);
             goto end;
         }
         memcpy(peer_copy, peer, sizeof(peer_info_t));
@@ -212,11 +207,11 @@ return_code_t *run_consensus_peer_client(
         if (SUCCESS != return_code) {
             free(peer_copy);
             linked_list_destroy(peer_info_list_copy);
-            pthread_mutex_unlock(&args->peer_info_list_mutex);
+            pthread_mutex_unlock(args->peer_info_list_mutex);
             goto end;
         }
     }
-    return_code = pthread_mutex_unlock(&args->peer_info_list_mutex);
+    return_code = pthread_mutex_unlock(args->peer_info_list_mutex);
     if (SUCCESS != return_code) {
         linked_list_destroy(peer_info_list_copy);
         goto end;

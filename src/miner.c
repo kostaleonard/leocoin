@@ -11,7 +11,10 @@
 #include "include/base64.h"
 #include "include/blockchain.h"
 #include "include/block.h"
+#include "include/consensus_peer_server_thread.h"
 #include "include/mining_thread.h"
+#include "include/peer_discovery.h"
+#include "include/peer_discovery_thread.h"
 #include "include/transaction.h"
 
 #define NUM_LEADING_ZERO_BYTES_IN_BLOCK_HASH 3
@@ -25,6 +28,12 @@ void print_usage_statement(char *program_name) {
     fprintf(
         stderr,
         "Usage: %s "
+        "[bind_ipv6_address] "
+        "[bind_port] "
+        "[peer_discovery_bootstrap_server_ipv6_address] "
+        "[peer_discovery_bootstrap_server_port] "
+        "-i [communication_interval_seconds] "
+        "-n [num_leading_zeros] "
         "-p [private_key_file_base64_encoded_contents] "
         "-k [public_key_file_base64_encoded_contents]\n",
         program_name);
@@ -38,13 +47,26 @@ end:
 
 int main(int argc, char **argv) {
     return_code_t return_code = SUCCESS;
-    blockchain_t *blockchain = NULL;
-    block_t *genesis_block = NULL;
+    size_t num_positional_args = 4;
+    if (argc < num_positional_args + 1) {
+        print_usage_statement(argv[0]);
+        return_code = FAILURE_INVALID_COMMAND_LINE_ARGS;
+        goto end;
+    }
+    uint64_t communication_interval_seconds =
+        DEFAULT_COMMUNICATION_INTERVAL_SECONDS;
+    size_t num_leading_zeros = NUM_LEADING_ZERO_BYTES_IN_BLOCK_HASH;
     char *ssh_private_key_contents_base64 = NULL;
     char *ssh_public_key_contents_base64 = NULL;
     int opt;
-    while ((opt = getopt(argc, argv, "p:k:")) != -1) {
+    while ((opt = getopt(
+        argc - num_positional_args,
+        argv + num_positional_args,
+        "i:p:k:n:")) != -1) {
         switch (opt) {
+            case 'i':
+                communication_interval_seconds = strtol(optarg, NULL, 10);
+                break;
             case 'p':
                 printf("Using private key from argv\n");
                 ssh_private_key_contents_base64 = optarg;
@@ -52,6 +74,9 @@ int main(int argc, char **argv) {
             case 'k':
                 printf("Using public key from argv\n");
                 ssh_public_key_contents_base64 = optarg;
+                break;
+            case 'n':
+                num_leading_zeros = strtol(optarg, NULL, 10);
                 break;
             default:
                 print_usage_statement(argv[0]);
@@ -77,6 +102,72 @@ int main(int argc, char **argv) {
         NULL == ssh_public_key_contents_base64) {
         print_usage_statement(argv[0]);
         return_code = FAILURE_INVALID_COMMAND_LINE_ARGS;
+        goto end;
+    }
+    #ifdef _WIN32
+        WSADATA wsaData;
+        if (0 != WSAStartup(MAKEWORD(2, 2), &wsaData)) {
+            return_code = FAILURE_NETWORK_FUNCTION;
+            goto end;
+        }
+    #endif
+    char *peer_ipv6_address = argv[1];
+    uint16_t peer_port = strtol(argv[2], NULL, 10);
+    char *server_ipv6_address = argv[3];
+    uint16_t server_port = strtol(argv[4], NULL, 10);
+    discover_peers_args_t discover_peers_args = {0};
+    if (inet_pton(
+        AF_INET6,
+        server_ipv6_address,
+        &discover_peers_args.peer_discovery_bootstrap_server_addr.sin6_addr)
+        != 1) {
+        fprintf(
+            stderr, "Invalid server IPv6 address: %s\n", server_ipv6_address);
+        return_code = FAILURE_INVALID_COMMAND_LINE_ARGS;
+        goto end;
+    }
+    discover_peers_args.peer_discovery_bootstrap_server_addr.sin6_family =
+        AF_INET6;
+    discover_peers_args.peer_discovery_bootstrap_server_addr.sin6_port =
+        htons(server_port);
+    if (inet_pton(
+        AF_INET6,
+        peer_ipv6_address,
+        &discover_peers_args.peer_addr.sin6_addr) != 1) {
+        fprintf(stderr, "Invalid bind IPv6 address: %s\n", peer_ipv6_address);
+        return_code = FAILURE_INVALID_COMMAND_LINE_ARGS;
+        goto end;
+    }
+    discover_peers_args.peer_addr.sin6_family = AF_INET6;
+    discover_peers_args.peer_addr.sin6_port = htons(peer_port);
+    discover_peers_args.communication_interval_microseconds =
+        communication_interval_seconds * 1e6;
+    discover_peers_args.peer_info_list = malloc(sizeof(linked_list_t *));
+    return_code = linked_list_create(
+        discover_peers_args.peer_info_list, free, compare_peer_info_t);
+    if (SUCCESS != return_code) {
+        goto end;
+    }
+    pthread_mutex_t *peer_info_list_mutex = malloc(sizeof(pthread_mutex_t));
+    discover_peers_args.peer_info_list_mutex = peer_info_list_mutex;
+    if (0 != pthread_mutex_init(
+        discover_peers_args.peer_info_list_mutex, NULL)) {
+        return_code = FAILURE_PTHREAD_FUNCTION;
+        linked_list_destroy(*discover_peers_args.peer_info_list);
+        goto end;
+    }
+    discover_peers_args.print_progress = false;
+    atomic_bool discover_peers_should_stop = false;
+    discover_peers_args.should_stop = &discover_peers_should_stop;
+    bool discover_peers_exit_ready = false;
+    discover_peers_args.exit_ready = &discover_peers_exit_ready;
+    if (SUCCESS != pthread_cond_init(
+        &discover_peers_args.exit_ready_cond, NULL)) {
+        return_code = FAILURE_PTHREAD_FUNCTION;
+        goto end;
+    }
+    if (0 != pthread_mutex_init(&discover_peers_args.exit_ready_mutex, NULL)) {
+        return_code = FAILURE_PTHREAD_FUNCTION;
         goto end;
     }
     ssh_key_t miner_public_key = {0};
@@ -110,8 +201,9 @@ int main(int argc, char **argv) {
         goto end;
     }
     printf("Using public key: %s\n", miner_public_key.bytes);
-    return_code = blockchain_create(
-        &blockchain, NUM_LEADING_ZERO_BYTES_IN_BLOCK_HASH);
+    blockchain_t *blockchain = NULL;
+    block_t *genesis_block = NULL;
+    return_code = blockchain_create(&blockchain, num_leading_zeros);
     if (SUCCESS != return_code) {
         goto end;
     }
@@ -134,43 +226,97 @@ int main(int argc, char **argv) {
         goto end;
     }
     atomic_bool should_stop = false;
-    mine_blocks_args_t args = {0};
-    args.sync = sync;
-    args.miner_public_key = &miner_public_key;
-    args.miner_private_key = &miner_private_key;
-    args.print_progress = true;
-    args.outfile = "blockchain.bin";
-    args.should_stop = &should_stop;
+    mine_blocks_args_t mine_blocks_args = {0};
+    mine_blocks_args.sync = sync;
+    mine_blocks_args.miner_public_key = &miner_public_key;
+    mine_blocks_args.miner_private_key = &miner_private_key;
+    mine_blocks_args.peer_info_list = discover_peers_args.peer_info_list;
+    mine_blocks_args.peer_info_list_mutex =
+        discover_peers_args.peer_info_list_mutex;
+    mine_blocks_args.print_progress = true;
+    mine_blocks_args.outfile = "blockchain.bin";
+    mine_blocks_args.should_stop = &should_stop;
     bool exit_ready = false;
-    args.exit_ready = &exit_ready;
-    return_code = pthread_cond_init(&args.exit_ready_cond, NULL);
+    mine_blocks_args.exit_ready = &exit_ready;
+    return_code = pthread_cond_init(&mine_blocks_args.exit_ready_cond, NULL);
     if (SUCCESS != return_code) {
         goto end;
     }
-    return_code = pthread_mutex_init(&args.exit_ready_mutex, NULL);
+    return_code = pthread_mutex_init(&mine_blocks_args.exit_ready_mutex, NULL);
     if (SUCCESS != return_code) {
         goto end;
     }
     atomic_size_t sync_version_currently_mined = atomic_load(&sync->version);
-    args.sync_version_currently_mined = &sync_version_currently_mined;
+    mine_blocks_args.sync_version_currently_mined =
+        &sync_version_currently_mined;
     return_code = pthread_cond_init(
-        &args.sync_version_currently_mined_cond, NULL);
+        &mine_blocks_args.sync_version_currently_mined_cond, NULL);
     if (SUCCESS != return_code) {
         goto end;
     }
     return_code = pthread_mutex_init(
-        &args.sync_version_currently_mined_mutex, NULL);
+        &mine_blocks_args.sync_version_currently_mined_mutex, NULL);
     if (SUCCESS != return_code) {
         goto end;
     }
-    return_code_t *return_code_ptr = mine_blocks(&args);
+    run_consensus_peer_server_args_t run_consensus_peer_server_args = {0};
+    memcpy(
+        &run_consensus_peer_server_args.consensus_peer_server_addr.sin6_addr,
+        &discover_peers_args.peer_addr.sin6_addr,
+        sizeof(IN6_ADDR));
+    run_consensus_peer_server_args.consensus_peer_server_addr.sin6_family =
+        AF_INET6;
+    run_consensus_peer_server_args.consensus_peer_server_addr.sin6_port =
+        htons(peer_port);
+    run_consensus_peer_server_args.sync = sync;
+    run_consensus_peer_server_args.print_progress = false;
+    atomic_bool run_consensus_peer_server_should_stop = false;
+    run_consensus_peer_server_args.should_stop =
+        &run_consensus_peer_server_should_stop;
+    bool run_consensus_peer_server_exit_ready = false;
+    run_consensus_peer_server_args.exit_ready =
+        &run_consensus_peer_server_exit_ready;
+    if (SUCCESS != pthread_cond_init(
+        &run_consensus_peer_server_args.exit_ready_cond, NULL)) {
+        return_code = FAILURE_PTHREAD_FUNCTION;
+        goto end;
+    }
+    if (0 != pthread_mutex_init(
+        &run_consensus_peer_server_args.exit_ready_mutex, NULL)) {
+        return_code = FAILURE_PTHREAD_FUNCTION;
+        goto end;
+    }
+    pthread_t discover_peers_thread;
+    return_code = pthread_create(
+        &discover_peers_thread,
+        NULL,
+        discover_peers_pthread_wrapper,
+        &discover_peers_args);
+    if (SUCCESS != return_code) {
+        goto end;
+    }
+    pthread_t run_consensus_peer_server_thread;
+    return_code = pthread_create(
+        &run_consensus_peer_server_thread,
+        NULL,
+        run_consensus_peer_server_pthread_wrapper,
+        &run_consensus_peer_server_args);
+    if (SUCCESS != return_code) {
+        goto end;
+    }
+    return_code_t *return_code_ptr = mine_blocks(&mine_blocks_args);
     return_code = *return_code_ptr;
     free(return_code_ptr);
-    pthread_cond_destroy(&args.exit_ready_cond);
-    pthread_mutex_destroy(&args.exit_ready_mutex);
-    pthread_cond_destroy(&args.sync_version_currently_mined_cond);
-    pthread_mutex_destroy(&args.sync_version_currently_mined_mutex);
+    pthread_cond_destroy(&mine_blocks_args.exit_ready_cond);
+    pthread_mutex_destroy(&mine_blocks_args.exit_ready_mutex);
+    pthread_cond_destroy(&mine_blocks_args.sync_version_currently_mined_cond);
+    pthread_mutex_destroy(&mine_blocks_args.sync_version_currently_mined_mutex);
     synchronized_blockchain_destroy(sync);
+    free(discover_peers_args.peer_info_list);
+    free(peer_info_list_mutex);
+    #ifdef _WIN32
+        WSACleanup();
+    #endif
 end:
     return return_code;
 }
