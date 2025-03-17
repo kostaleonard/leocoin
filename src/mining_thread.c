@@ -14,14 +14,11 @@ void *broadcast_blockchain(void *args) {
         return_code = FAILURE_INVALID_INPUT;
         goto end;
     }
-    // TODO remove debugging
-    //printf("broadcast blockchain, peer list: %p\n", mine_blocks_args->peer_info_list);
-    //printf("broadcast blockchain, peer list mutex: %p\n", mine_blocks_args->peer_info_list_mutex);
     run_consensus_peer_client_args_t run_consensus_peer_client_args = {0};
     run_consensus_peer_client_args.sync = mine_blocks_args->sync;
     run_consensus_peer_client_args.peer_info_list = mine_blocks_args->peer_info_list;
     run_consensus_peer_client_args.peer_info_list_mutex = mine_blocks_args->peer_info_list_mutex;
-    run_consensus_peer_client_args.print_progress = true;
+    run_consensus_peer_client_args.print_progress = false;
     atomic_bool run_consensus_peer_client_should_stop = false;
     run_consensus_peer_client_args.should_stop = &run_consensus_peer_client_should_stop;
     bool run_consensus_peer_client_exit_ready = false;
@@ -34,24 +31,10 @@ void *broadcast_blockchain(void *args) {
         return_code = FAILURE_PTHREAD_FUNCTION;
         goto end;
     }
-    run_consensus_peer_client(&run_consensus_peer_client_args);
-    /*
-    pthread_t run_consensus_peer_client_thread;
-    printf("mutex just before pthread_create: %p\n", run_consensus_peer_client_args.peer_info_list_mutex);
-    printf("pthread_create args: %p\n", &run_consensus_peer_client_args);
-    return_code = pthread_create(
-        &run_consensus_peer_client_thread,
-        NULL,
-        run_consensus_peer_client_pthread_wrapper,
-        &run_consensus_peer_client_args);
-    if (SUCCESS != return_code) {
-        goto end;
-    }
-    // TODO remove
-    pthread_join(run_consensus_peer_client_thread, NULL);
-    */
+    return_code_t *return_code_ptr = run_consensus_peer_client(&run_consensus_peer_client_args);
+    free(return_code_ptr);
 end:
-    // TODO return code unused, get rid of it or use it
+    // This is only to avoid an unused variable error.
     return_code++;
     return NULL;
 }
@@ -74,32 +57,26 @@ return_code_t *mine_blocks(mine_blocks_args_t *args) {
     }
     pthread_t broadcast_thread;
     while (!*args->should_stop) {
-        printf("Starting next iteration\n");
         if (atomic_load(args->sync_version_currently_mined) !=
             atomic_load(&sync->version)) {
-            printf("Switching chains\n");
             blockchain_t *old_blockchain = blockchain;
             if (0 != pthread_mutex_lock(&sync->mutex)) {
                 return_code = FAILURE_PTHREAD_FUNCTION;
                 goto end;
             }
-            printf("Mutex locked\n");
             blockchain = sync->blockchain;
             if (0 != pthread_mutex_unlock(&sync->mutex)) {
                 return_code = FAILURE_PTHREAD_FUNCTION;
                 goto end;
             }
-            printf("Mutex unlocked\n");
             // TODO person who switched the chain is responsible for destroying old chain
             return_code = blockchain_destroy(old_blockchain);
-            printf("Old chain destroyed\n");
             if (SUCCESS != return_code) {
                 goto end;
             }
             atomic_store(
                 args->sync_version_currently_mined,
                 atomic_load(&sync->version));
-            printf("Stored new mined version\n");
             if (0 != pthread_mutex_lock(
                 &args->sync_version_currently_mined_mutex)) {
                 return_code = FAILURE_PTHREAD_FUNCTION;
@@ -111,7 +88,6 @@ return_code_t *mine_blocks(mine_blocks_args_t *args) {
                 return_code = FAILURE_PTHREAD_FUNCTION;
                 goto end;
             }
-            printf("Done switching chains\n");
         }
         bool is_valid_blockchain = false;
         block_t *first_invalid_block = NULL;
@@ -173,7 +149,6 @@ return_code_t *mine_blocks(mine_blocks_args_t *args) {
             linked_list_destroy(transaction_list);
             goto end;
         }
-        printf("Starting mining\n");
         return_code = synchronized_blockchain_mine_block(
             sync,
             next_block,

@@ -21,9 +21,6 @@
 #define PRIVATE_KEY_ENVIRONMENT_VARIABLE "LEOCOIN_PRIVATE_KEY"
 #define PUBLIC_KEY_ENVIRONMENT_VARIABLE "LEOCOIN_PUBLIC_KEY"
 
-// TODO remove
-//pthread_mutex_t peer_info_list_mutex;
-
 void print_usage_statement(char *program_name) {
     if (NULL == program_name) {
         goto end;
@@ -39,7 +36,6 @@ void print_usage_statement(char *program_name) {
         "-p [private_key_file_base64_encoded_contents] "
         "-k [public_key_file_base64_encoded_contents]\n",
         program_name);
-    // TODO more detailed usage instructions
     fprintf(
         stderr,
         "Or supply keys as environment variables %s and %s\n",
@@ -110,7 +106,6 @@ int main(int argc, char **argv) {
             goto end;
         }
     #endif
-    // TODO rename these
     char *peer_ipv6_address = argv[1];
     uint16_t peer_port = strtol(argv[2], NULL, 10);
     char *server_ipv6_address = argv[3];
@@ -145,7 +140,7 @@ int main(int argc, char **argv) {
     if (SUCCESS != return_code) {
         goto end;
     }
-    pthread_mutex_t *peer_info_list_mutex = malloc(sizeof(pthread_mutex_t)); // TODO free--I don't think this needs to be malloced anymore, fixed memory error, can be here on stack
+    pthread_mutex_t *peer_info_list_mutex = malloc(sizeof(pthread_mutex_t));
     discover_peers_args.peer_info_list_mutex = peer_info_list_mutex;
     printf("discover peers list: %p\n", discover_peers_args.peer_info_list);
     printf("discover peers mutex: %p\n", discover_peers_args.peer_info_list_mutex);
@@ -154,7 +149,7 @@ int main(int argc, char **argv) {
         linked_list_destroy(*discover_peers_args.peer_info_list);
         goto end;
     }
-    discover_peers_args.print_progress = true;
+    discover_peers_args.print_progress = false;
     atomic_bool discover_peers_should_stop = false;
     discover_peers_args.should_stop = &discover_peers_should_stop;
     bool discover_peers_exit_ready = false;
@@ -263,7 +258,7 @@ int main(int argc, char **argv) {
     run_consensus_peer_server_args.consensus_peer_server_addr.sin6_family = AF_INET6;
     run_consensus_peer_server_args.consensus_peer_server_addr.sin6_port = htons(peer_port);
     run_consensus_peer_server_args.sync = sync;
-    run_consensus_peer_server_args.print_progress = true;
+    run_consensus_peer_server_args.print_progress = false;
     atomic_bool run_consensus_peer_server_should_stop = false;
     run_consensus_peer_server_args.should_stop = &run_consensus_peer_server_should_stop;
     bool run_consensus_peer_server_exit_ready = false;
@@ -276,10 +271,6 @@ int main(int argc, char **argv) {
         return_code = FAILURE_PTHREAD_FUNCTION;
         goto end;
     }
-    // TODO consensus peer should be in mining thread whenever new block is mined
-    // TODO make sure we're sharing mutexes
-    // TODO start all threads
-    // TODO join later?
     pthread_t discover_peers_thread;
     return_code = pthread_create(
         &discover_peers_thread,
@@ -307,6 +298,7 @@ int main(int argc, char **argv) {
     pthread_mutex_destroy(&mine_blocks_args.sync_version_currently_mined_mutex);
     synchronized_blockchain_destroy(sync);
     free(discover_peers_args.peer_info_list);
+    free(peer_info_list_mutex);
     #ifdef _WIN32
         WSACleanup();
     #endif
