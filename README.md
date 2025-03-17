@@ -62,4 +62,4 @@ The blue text shows when a peer has switched to a longer chain.
 Here is what the mining process looks like when three peers are participating.
 The upper left window is the peer discovery bootstrap server.
 
-TODO media
+![Three miners](media/three_miners.gif)
