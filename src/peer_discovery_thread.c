@@ -100,22 +100,22 @@ return_code_t discover_peers_once(discover_peers_args_t *args) {
         goto end;
     }
     free(command_send_peer_list.peer_list_data);
-    if (0 != pthread_mutex_lock(&args->peer_info_list_mutex)) {
+    if (0 != pthread_mutex_lock(args->peer_info_list_mutex)) {
         return_code = FAILURE_PTHREAD_FUNCTION;
         goto end;
     }
-    linked_list_destroy(args->peer_info_list);
-    args->peer_info_list = new_peer_info_list;
-    if (0 != pthread_mutex_unlock(&args->peer_info_list_mutex)) {
+    linked_list_destroy(*args->peer_info_list);
+    *args->peer_info_list = new_peer_info_list;
+    if (0 != pthread_mutex_unlock(args->peer_info_list_mutex)) {
         return_code = FAILURE_PTHREAD_FUNCTION;
         goto end;
     }
     if (args->print_progress) {
-        if (0 != pthread_mutex_lock(&args->peer_info_list_mutex)) {
+        if (0 != pthread_mutex_lock(args->peer_info_list_mutex)) {
             return_code = FAILURE_PTHREAD_FUNCTION;
             goto end;
         }
-        for (node_t *node = args->peer_info_list->head;
+        for (node_t *node = (*args->peer_info_list)->head;
             NULL != node;
             node = node->next) {
             peer_info_t *peer = (peer_info_t *)node->data;
@@ -131,7 +131,7 @@ return_code_t discover_peers_once(discover_peers_args_t *args) {
             printf("IPv6 Address: %s\n", ip_str);
             printf("Port: %d\n", port);
         }
-        if (0 != pthread_mutex_unlock(&args->peer_info_list_mutex)) {
+        if (0 != pthread_mutex_unlock(args->peer_info_list_mutex)) {
             return_code = FAILURE_PTHREAD_FUNCTION;
             goto end;
         }

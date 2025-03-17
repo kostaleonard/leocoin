@@ -191,19 +191,27 @@ return_code_t *run_consensus_peer_client(
     if (SUCCESS != return_code) {
         goto end;
     }
-    return_code = pthread_mutex_lock(&args->peer_info_list_mutex);
+    // TODO remove debugging
+    //printf("run_consensus_peer_client, args: %p\n", args);
+    //printf("run_consensus_peer_client, peer list: %p\n", args->peer_info_list);
+    //printf("run_consensus_peer_client, locking mutex: %p\n", args->peer_info_list_mutex);
+    return_code = pthread_mutex_lock(args->peer_info_list_mutex);
+    //printf("run_consensus_peer_client, mutex locked: %p\n", args->peer_info_list_mutex);
     if (SUCCESS != return_code) {
         linked_list_destroy(peer_info_list_copy);
         goto end;
     }
-    for (node_t *node = args->peer_info_list->head;
+    // TODO remove debugging
+    uint64_t num_peers = 0;
+    for (node_t *node = (*args->peer_info_list)->head;
         NULL != node;
         node = node->next) {
+        num_peers++;
         peer_info_t *peer = (peer_info_t *)node->data;
         peer_info_t *peer_copy = calloc(1, sizeof(peer_info_t));
         if (NULL == peer_copy) {
             linked_list_destroy(peer_info_list_copy);
-            pthread_mutex_unlock(&args->peer_info_list_mutex);
+            pthread_mutex_unlock(args->peer_info_list_mutex);
             goto end;
         }
         memcpy(peer_copy, peer, sizeof(peer_info_t));
@@ -212,11 +220,12 @@ return_code_t *run_consensus_peer_client(
         if (SUCCESS != return_code) {
             free(peer_copy);
             linked_list_destroy(peer_info_list_copy);
-            pthread_mutex_unlock(&args->peer_info_list_mutex);
+            pthread_mutex_unlock(args->peer_info_list_mutex);
             goto end;
         }
     }
-    return_code = pthread_mutex_unlock(&args->peer_info_list_mutex);
+    printf("Found %lld peers\n", num_peers);
+    return_code = pthread_mutex_unlock(args->peer_info_list_mutex);
     if (SUCCESS != return_code) {
         linked_list_destroy(peer_info_list_copy);
         goto end;

@@ -76,10 +76,13 @@ void test_discover_peers_once_updates_peer_list() {
     args.peer_addr.sin6_family = AF_INET6;
     args.peer_addr.sin6_port = htons(23456);
     args.communication_interval_microseconds = 100000;
+    args.peer_info_list = malloc(sizeof(linked_list_t *));
     return_code = linked_list_create(
-        &args.peer_info_list, free, compare_peer_info_t);
+        args.peer_info_list, free, compare_peer_info_t);
     assert_true(SUCCESS == return_code);
-    pthread_mutex_init(&args.peer_info_list_mutex, NULL);
+    pthread_mutex_t peer_info_list_mutex;
+    pthread_mutex_init(&peer_info_list_mutex, NULL);
+    args.peer_info_list_mutex = &peer_info_list_mutex;
     args.print_progress = false;
     atomic_bool should_stop = false;
     args.should_stop = &should_stop;
@@ -90,18 +93,19 @@ void test_discover_peers_once_updates_peer_list() {
     return_code = discover_peers_once(&args);
     assert_true(SUCCESS == return_code);
     uint64_t length = 0;
-    return_code = linked_list_length(args.peer_info_list, &length);
+    return_code = linked_list_length(*args.peer_info_list, &length);
     assert_true(SUCCESS == return_code);
     assert_true(2 == length);
-    peer_info_t *p = (peer_info_t *)args.peer_info_list->head->data;
+    peer_info_t *p = (peer_info_t *)(*args.peer_info_list)->head->data;
     assert_true(0 == compare_peer_info_t(peer1, p));
-    p = (peer_info_t *)args.peer_info_list->head->next->data;
+    p = (peer_info_t *)(*args.peer_info_list)->head->next->data;
     assert_true(0 == compare_peer_info_t(peer2, p));
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
-    pthread_mutex_destroy(&args.peer_info_list_mutex);
+    pthread_mutex_destroy(args.peer_info_list_mutex);
     linked_list_destroy(peer_info_list);
-    linked_list_destroy(args.peer_info_list);
+    linked_list_destroy(*args.peer_info_list);
+    free(args.peer_info_list);
     free(command_send_peer_list.peer_list_data);
     free(command_send_peer_list_buffer);
 }
@@ -163,10 +167,13 @@ void test_discover_peers_once_receives_large_peer_list() {
     args.peer_addr.sin6_family = AF_INET6;
     args.peer_addr.sin6_port = htons(23456);
     args.communication_interval_microseconds = 100000;
+    args.peer_info_list = malloc(sizeof(linked_list_t *));
     return_code = linked_list_create(
-        &args.peer_info_list, free, compare_peer_info_t);
+        args.peer_info_list, free, compare_peer_info_t);
     assert_true(SUCCESS == return_code);
-    pthread_mutex_init(&args.peer_info_list_mutex, NULL);
+    pthread_mutex_t peer_info_list_mutex;
+    pthread_mutex_init(&peer_info_list_mutex, NULL);
+    args.peer_info_list_mutex = &peer_info_list_mutex;
     args.print_progress = false;
     atomic_bool should_stop = false;
     args.should_stop = &should_stop;
@@ -177,14 +184,15 @@ void test_discover_peers_once_receives_large_peer_list() {
     return_code = discover_peers_once(&args);
     assert_true(SUCCESS == return_code);
     uint64_t length = 0;
-    return_code = linked_list_length(args.peer_info_list, &length);
+    return_code = linked_list_length(*args.peer_info_list, &length);
     assert_true(SUCCESS == return_code);
     assert_true(num_test_peers == length);
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
-    pthread_mutex_destroy(&args.peer_info_list_mutex);
+    pthread_mutex_destroy(args.peer_info_list_mutex);
     linked_list_destroy(peer_info_list);
-    linked_list_destroy(args.peer_info_list);
+    linked_list_destroy(*args.peer_info_list);
+    free(args.peer_info_list);
     free(command_send_peer_list.peer_list_data);
     free(command_send_peer_list_buffer);
 }
@@ -201,10 +209,13 @@ void test_discover_peers_exits_when_should_stop_is_set() {
     args.peer_addr.sin6_family = AF_INET6;
     args.peer_addr.sin6_port = htons(23456);
     args.communication_interval_microseconds = 10000;
+    args.peer_info_list = malloc(sizeof(linked_list_t *));
     return_code_t return_code = linked_list_create(
-        &args.peer_info_list, free, compare_peer_info_t);
+        args.peer_info_list, free, compare_peer_info_t);
     assert_true(SUCCESS == return_code);
-    pthread_mutex_init(&args.peer_info_list_mutex, NULL);
+    pthread_mutex_t peer_info_list_mutex;
+    pthread_mutex_init(&peer_info_list_mutex, NULL);
+    args.peer_info_list_mutex = &peer_info_list_mutex;
     args.print_progress = false;
     atomic_bool should_stop = false;
     args.should_stop = &should_stop;
@@ -237,6 +248,7 @@ void test_discover_peers_exits_when_should_stop_is_set() {
     free(return_code_ptr);
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
-    pthread_mutex_destroy(&args.peer_info_list_mutex);
-    linked_list_destroy(args.peer_info_list);
+    pthread_mutex_destroy(args.peer_info_list_mutex);
+    linked_list_destroy(*args.peer_info_list);
+    free(args.peer_info_list);
 }

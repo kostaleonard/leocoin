@@ -11,7 +11,6 @@
 #include "include/base64.h"
 #include "include/blockchain.h"
 #include "include/block.h"
-#include "include/consensus_peer_client_thread.h"
 #include "include/consensus_peer_server_thread.h"
 #include "include/mining_thread.h"
 #include "include/peer_discovery.h"
@@ -21,6 +20,9 @@
 #define NUM_LEADING_ZERO_BYTES_IN_BLOCK_HASH 3
 #define PRIVATE_KEY_ENVIRONMENT_VARIABLE "LEOCOIN_PRIVATE_KEY"
 #define PUBLIC_KEY_ENVIRONMENT_VARIABLE "LEOCOIN_PUBLIC_KEY"
+
+// TODO remove
+//pthread_mutex_t peer_info_list_mutex;
 
 void print_usage_statement(char *program_name) {
     if (NULL == program_name) {
@@ -137,14 +139,19 @@ int main(int argc, char **argv) {
     discover_peers_args.peer_addr.sin6_port = htons(peer_port);
     discover_peers_args.communication_interval_microseconds =
         communication_interval_seconds * 1e6;
+    discover_peers_args.peer_info_list = malloc(sizeof(linked_list_t *));
     return_code = linked_list_create(
-        &discover_peers_args.peer_info_list, free, compare_peer_info_t);
+        discover_peers_args.peer_info_list, free, compare_peer_info_t);
     if (SUCCESS != return_code) {
         goto end;
     }
-    if (0 != pthread_mutex_init(&discover_peers_args.peer_info_list_mutex, NULL)) {
+    pthread_mutex_t *peer_info_list_mutex = malloc(sizeof(pthread_mutex_t)); // TODO free--I don't think this needs to be malloced anymore, fixed memory error, can be here on stack
+    discover_peers_args.peer_info_list_mutex = peer_info_list_mutex;
+    printf("discover peers list: %p\n", discover_peers_args.peer_info_list);
+    printf("discover peers mutex: %p\n", discover_peers_args.peer_info_list_mutex);
+    if (0 != pthread_mutex_init(discover_peers_args.peer_info_list_mutex, NULL)) {
         return_code = FAILURE_PTHREAD_FUNCTION;
-        linked_list_destroy(discover_peers_args.peer_info_list);
+        linked_list_destroy(*discover_peers_args.peer_info_list);
         goto end;
     }
     discover_peers_args.print_progress = true;
@@ -194,7 +201,7 @@ int main(int argc, char **argv) {
     blockchain_t *blockchain = NULL;
     block_t *genesis_block = NULL;
     return_code = blockchain_create(
-        &blockchain, NUM_LEADING_ZERO_BYTES_IN_BLOCK_HASH);
+        &blockchain, 2); // TODO NUM_LEADING_ZERO_BYTES_IN_BLOCK_HASH
     if (SUCCESS != return_code) {
         goto end;
     }
@@ -221,6 +228,8 @@ int main(int argc, char **argv) {
     mine_blocks_args.sync = sync;
     mine_blocks_args.miner_public_key = &miner_public_key;
     mine_blocks_args.miner_private_key = &miner_private_key;
+    mine_blocks_args.peer_info_list = discover_peers_args.peer_info_list;
+    mine_blocks_args.peer_info_list_mutex = discover_peers_args.peer_info_list_mutex;
     mine_blocks_args.print_progress = true;
     mine_blocks_args.outfile = "blockchain.bin";
     mine_blocks_args.should_stop = &should_stop;
@@ -267,23 +276,6 @@ int main(int argc, char **argv) {
         return_code = FAILURE_PTHREAD_FUNCTION;
         goto end;
     }
-    run_consensus_peer_client_args_t run_consensus_peer_client_args = {0};
-    run_consensus_peer_client_args.sync = sync;
-    run_consensus_peer_client_args.peer_info_list = discover_peers_args.peer_info_list;
-    run_consensus_peer_client_args.peer_info_list_mutex = discover_peers_args.peer_info_list_mutex;
-    run_consensus_peer_client_args.print_progress = true;
-    atomic_bool run_consensus_peer_client_should_stop = false;
-    run_consensus_peer_client_args.should_stop = &run_consensus_peer_client_should_stop;
-    bool run_consensus_peer_client_exit_ready = false;
-    run_consensus_peer_client_args.exit_ready = &run_consensus_peer_client_exit_ready;
-    if (SUCCESS != pthread_cond_init(&run_consensus_peer_client_args.exit_ready_cond, NULL)) {
-        return_code = FAILURE_PTHREAD_FUNCTION;
-        goto end;
-    }
-    if (0 != pthread_mutex_init(&run_consensus_peer_client_args.exit_ready_mutex, NULL)) {
-        return_code = FAILURE_PTHREAD_FUNCTION;
-        goto end;
-    }
     // TODO consensus peer should be in mining thread whenever new block is mined
     // TODO make sure we're sharing mutexes
     // TODO start all threads
@@ -306,15 +298,6 @@ int main(int argc, char **argv) {
     if (SUCCESS != return_code) {
         goto end;
     }
-    pthread_t run_consensus_peer_client_thread;
-    return_code = pthread_create(
-        &run_consensus_peer_client_thread,
-        NULL,
-        run_consensus_peer_client_pthread_wrapper,
-        &run_consensus_peer_client_args);
-    if (SUCCESS != return_code) {
-        goto end;
-    }
     return_code_t *return_code_ptr = mine_blocks(&mine_blocks_args);
     return_code = *return_code_ptr;
     free(return_code_ptr);
@@ -323,6 +306,7 @@ int main(int argc, char **argv) {
     pthread_cond_destroy(&mine_blocks_args.sync_version_currently_mined_cond);
     pthread_mutex_destroy(&mine_blocks_args.sync_version_currently_mined_mutex);
     synchronized_blockchain_destroy(sync);
+    free(discover_peers_args.peer_info_list);
     #ifdef _WIN32
         WSACleanup();
     #endif

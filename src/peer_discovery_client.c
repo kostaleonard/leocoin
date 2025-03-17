@@ -88,14 +88,17 @@ int main(int argc, char **argv) {
     args.peer_addr.sin6_port = htons(peer_port);
     args.communication_interval_microseconds =
         communication_interval_seconds * 1e6;
+    args.peer_info_list = malloc(sizeof(linked_list_t *));
     return_code = linked_list_create(
-        &args.peer_info_list, free, compare_peer_info_t);
+        args.peer_info_list, free, compare_peer_info_t);
     if (SUCCESS != return_code) {
         goto end;
     }
-    if (0 != pthread_mutex_init(&args.peer_info_list_mutex, NULL)) {
+    pthread_mutex_t peer_info_list_mutex;
+    args.peer_info_list_mutex = &peer_info_list_mutex;
+    if (0 != pthread_mutex_init(args.peer_info_list_mutex, NULL)) {
         return_code = FAILURE_PTHREAD_FUNCTION;
-        linked_list_destroy(args.peer_info_list);
+        linked_list_destroy(*args.peer_info_list);
         goto end;
     }
     args.print_progress = true;
@@ -114,10 +117,11 @@ int main(int argc, char **argv) {
     return_code_t *return_code_ptr = discover_peers(&args);
     return_code = *return_code_ptr;
     free(return_code_ptr);
-    linked_list_destroy(args.peer_info_list);
-    pthread_mutex_destroy(&args.peer_info_list_mutex);
+    linked_list_destroy(*args.peer_info_list);
+    pthread_mutex_destroy(args.peer_info_list_mutex);
     pthread_cond_destroy(&args.exit_ready_cond);
     pthread_mutex_destroy(&args.exit_ready_mutex);
+    free(args.peer_info_list);
     #ifdef _WIN32
         WSACleanup();
     #endif

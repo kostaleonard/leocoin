@@ -44,8 +44,8 @@
  */
 typedef struct run_consensus_peer_client_args_t {
     synchronized_blockchain_t *sync;
-    linked_list_t *peer_info_list;
-    pthread_mutex_t peer_info_list_mutex;
+    linked_list_t **peer_info_list;
+    pthread_mutex_t *peer_info_list_mutex;
     bool print_progress;
     atomic_bool *should_stop;
     bool *exit_ready;

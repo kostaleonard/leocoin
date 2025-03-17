@@ -24,6 +24,9 @@
  * function uses it to create the minting transaction.
  * @param miner_private_key The private key with which to mine blocks. This
  * function uses it to digitally sign the minting transaction.
+ * @param peer_info_list The list of peers that this client is aware of. Each
+ * entry is a peer_info_t struct.
+ * @param peer_info_list_mutex Protects peer_info_list.
  * @param print_progress If true, display progress on the screen.
  * @param outfile If not NULL, this function will save the blockchain to this
  * filename every time it mines a new block. If NULL, this function will only
@@ -61,6 +64,8 @@ typedef struct mine_blocks_args_t {
     synchronized_blockchain_t *sync;
     ssh_key_t *miner_public_key;
     ssh_key_t *miner_private_key;
+    linked_list_t **peer_info_list;
+    pthread_mutex_t *peer_info_list_mutex;
     bool print_progress;
     char *outfile;
     atomic_bool *should_stop;

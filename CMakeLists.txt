@@ -38,7 +38,7 @@ add_library(sleep src/sleep.c)
 add_library(consensus_peer_server_thread src/consensus_peer_server_thread.c)
 add_library(consensus_peer_client_thread src/consensus_peer_client_thread.c)
 target_link_libraries(miner consensus_peer_server_thread)
-target_link_libraries(miner consensus_peer_client_thread)
+target_link_libraries(mining_thread consensus_peer_client_thread)
 # Peer discovery bootstrap server
 add_executable(peer_discovery_bootstrap_server src/peer_discovery_bootstrap_server.c)
 target_link_libraries(peer_discovery_bootstrap_server linked_list)

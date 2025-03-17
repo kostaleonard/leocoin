@@ -1,7 +1,60 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "include/consensus_peer_client_thread.h"
 #include "include/transaction.h"
 #include "include/mining_thread.h"
+
+void *broadcast_blockchain(void *args) {
+    return_code_t return_code = SUCCESS;
+    mine_blocks_args_t *mine_blocks_args = (mine_blocks_args_t *)args;
+    // TODO tech debt: we allow peer list and mutex to be NULL
+    if (NULL == mine_blocks_args ||
+        NULL == mine_blocks_args->peer_info_list ||
+        NULL == mine_blocks_args->peer_info_list_mutex) {
+        return_code = FAILURE_INVALID_INPUT;
+        goto end;
+    }
+    // TODO remove debugging
+    //printf("broadcast blockchain, peer list: %p\n", mine_blocks_args->peer_info_list);
+    //printf("broadcast blockchain, peer list mutex: %p\n", mine_blocks_args->peer_info_list_mutex);
+    run_consensus_peer_client_args_t run_consensus_peer_client_args = {0};
+    run_consensus_peer_client_args.sync = mine_blocks_args->sync;
+    run_consensus_peer_client_args.peer_info_list = mine_blocks_args->peer_info_list;
+    run_consensus_peer_client_args.peer_info_list_mutex = mine_blocks_args->peer_info_list_mutex;
+    run_consensus_peer_client_args.print_progress = true;
+    atomic_bool run_consensus_peer_client_should_stop = false;
+    run_consensus_peer_client_args.should_stop = &run_consensus_peer_client_should_stop;
+    bool run_consensus_peer_client_exit_ready = false;
+    run_consensus_peer_client_args.exit_ready = &run_consensus_peer_client_exit_ready;
+    if (SUCCESS != pthread_cond_init(&run_consensus_peer_client_args.exit_ready_cond, NULL)) {
+        return_code = FAILURE_PTHREAD_FUNCTION;
+        goto end;
+    }
+    if (0 != pthread_mutex_init(&run_consensus_peer_client_args.exit_ready_mutex, NULL)) {
+        return_code = FAILURE_PTHREAD_FUNCTION;
+        goto end;
+    }
+    run_consensus_peer_client(&run_consensus_peer_client_args);
+    /*
+    pthread_t run_consensus_peer_client_thread;
+    printf("mutex just before pthread_create: %p\n", run_consensus_peer_client_args.peer_info_list_mutex);
+    printf("pthread_create args: %p\n", &run_consensus_peer_client_args);
+    return_code = pthread_create(
+        &run_consensus_peer_client_thread,
+        NULL,
+        run_consensus_peer_client_pthread_wrapper,
+        &run_consensus_peer_client_args);
+    if (SUCCESS != return_code) {
+        goto end;
+    }
+    // TODO remove
+    pthread_join(run_consensus_peer_client_thread, NULL);
+    */
+end:
+    // TODO return code unused, get rid of it or use it
+    return_code++;
+    return NULL;
+}
 
 return_code_t *mine_blocks(mine_blocks_args_t *args) {
     return_code_t return_code = SUCCESS;
@@ -19,6 +72,7 @@ return_code_t *mine_blocks(mine_blocks_args_t *args) {
         return_code = FAILURE_PTHREAD_FUNCTION;
         goto end;
     }
+    pthread_t broadcast_thread;
     while (!*args->should_stop) {
         if (atomic_load(args->sync_version_currently_mined) !=
             atomic_load(&sync->version)) {
@@ -149,9 +203,12 @@ return_code_t *mine_blocks(mine_blocks_args_t *args) {
             if (NULL != args->outfile) {
                 blockchain_write_to_file(blockchain, args->outfile);
             }
-            // TODO spin up client thread here to broadcast blockchain
+            // TODO ugly
+            pthread_join(broadcast_thread, NULL);
+            pthread_create(&broadcast_thread, NULL, broadcast_blockchain, args);
         }
     }
+    pthread_join(broadcast_thread, NULL);
     pthread_mutex_lock(&args->exit_ready_mutex);
     *args->exit_ready = true;
     pthread_cond_signal(&args->exit_ready_cond);
