@@ -144,11 +144,12 @@ return_code_t run_consensus_peer_client_once(
             args->sync->blockchain = peer_blockchain;
             atomic_fetch_add(&args->sync->version, 1);
             switched_to_peer_chain = true;
-            return_code = blockchain_destroy(our_blockchain);
-            if (SUCCESS != return_code) {
-                pthread_mutex_unlock(&args->sync->mutex);
-                goto end;
-            }
+            // TODO the miner will destroy the old chain
+            //return_code = blockchain_destroy(our_blockchain);
+            // if (SUCCESS != return_code) {
+            //     pthread_mutex_unlock(&args->sync->mutex);
+            //     goto end;
+            // }
             if (args->print_progress) {
                 printf(
                     "Client switched to longer blockchain: "

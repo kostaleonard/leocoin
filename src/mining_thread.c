@@ -74,25 +74,32 @@ return_code_t *mine_blocks(mine_blocks_args_t *args) {
     }
     pthread_t broadcast_thread;
     while (!*args->should_stop) {
+        printf("Starting next iteration\n");
         if (atomic_load(args->sync_version_currently_mined) !=
             atomic_load(&sync->version)) {
+            printf("Switching chains\n");
             blockchain_t *old_blockchain = blockchain;
             if (0 != pthread_mutex_lock(&sync->mutex)) {
                 return_code = FAILURE_PTHREAD_FUNCTION;
                 goto end;
             }
+            printf("Mutex locked\n");
             blockchain = sync->blockchain;
             if (0 != pthread_mutex_unlock(&sync->mutex)) {
                 return_code = FAILURE_PTHREAD_FUNCTION;
                 goto end;
             }
+            printf("Mutex unlocked\n");
+            // TODO person who switched the chain is responsible for destroying old chain
             return_code = blockchain_destroy(old_blockchain);
+            printf("Old chain destroyed\n");
             if (SUCCESS != return_code) {
                 goto end;
             }
             atomic_store(
                 args->sync_version_currently_mined,
                 atomic_load(&sync->version));
+            printf("Stored new mined version\n");
             if (0 != pthread_mutex_lock(
                 &args->sync_version_currently_mined_mutex)) {
                 return_code = FAILURE_PTHREAD_FUNCTION;
@@ -104,6 +111,7 @@ return_code_t *mine_blocks(mine_blocks_args_t *args) {
                 return_code = FAILURE_PTHREAD_FUNCTION;
                 goto end;
             }
+            printf("Done switching chains\n");
         }
         bool is_valid_blockchain = false;
         block_t *first_invalid_block = NULL;
@@ -165,6 +173,7 @@ return_code_t *mine_blocks(mine_blocks_args_t *args) {
             linked_list_destroy(transaction_list);
             goto end;
         }
+        printf("Starting mining\n");
         return_code = synchronized_blockchain_mine_block(
             sync,
             next_block,
