@@ -7,7 +7,6 @@
 void *broadcast_blockchain(void *args) {
     return_code_t return_code = SUCCESS;
     mine_blocks_args_t *mine_blocks_args = (mine_blocks_args_t *)args;
-    // TODO tech debt: we allow peer list and mutex to be NULL
     if (NULL == mine_blocks_args ||
         NULL == mine_blocks_args->peer_info_list ||
         NULL == mine_blocks_args->peer_info_list_mutex) {
@@ -193,7 +192,6 @@ return_code_t *mine_blocks(mine_blocks_args_t *args) {
             if (NULL != args->outfile) {
                 blockchain_write_to_file(blockchain, args->outfile);
             }
-            // TODO ugly
             pthread_join(broadcast_thread, NULL);
             pthread_create(&broadcast_thread, NULL, broadcast_blockchain, args);
         }
