@@ -9,6 +9,7 @@
 #define INCLUDE_CONSENSUS_PEER_SERVER_THREAD_H_
 #include <pthread.h>
 #include <stdatomic.h>
+#include "include/networking.h"
 #include "include/return_codes.h"
 #include "include/blockchain.h"
 
