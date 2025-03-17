@@ -114,14 +114,17 @@ int main(int argc, char **argv) {
     if (inet_pton(
         AF_INET6,
         server_ipv6_address,
-        &discover_peers_args.peer_discovery_bootstrap_server_addr.sin6_addr) != 1) {
+        &discover_peers_args.peer_discovery_bootstrap_server_addr.sin6_addr)
+        != 1) {
         fprintf(
             stderr, "Invalid server IPv6 address: %s\n", server_ipv6_address);
         return_code = FAILURE_INVALID_COMMAND_LINE_ARGS;
         goto end;
     }
-    discover_peers_args.peer_discovery_bootstrap_server_addr.sin6_family = AF_INET6;
-    discover_peers_args.peer_discovery_bootstrap_server_addr.sin6_port = htons(server_port);
+    discover_peers_args.peer_discovery_bootstrap_server_addr.sin6_family =
+        AF_INET6;
+    discover_peers_args.peer_discovery_bootstrap_server_addr.sin6_port =
+        htons(server_port);
     if (inet_pton(
         AF_INET6,
         peer_ipv6_address,
@@ -142,9 +145,8 @@ int main(int argc, char **argv) {
     }
     pthread_mutex_t *peer_info_list_mutex = malloc(sizeof(pthread_mutex_t));
     discover_peers_args.peer_info_list_mutex = peer_info_list_mutex;
-    printf("discover peers list: %p\n", discover_peers_args.peer_info_list);
-    printf("discover peers mutex: %p\n", discover_peers_args.peer_info_list_mutex);
-    if (0 != pthread_mutex_init(discover_peers_args.peer_info_list_mutex, NULL)) {
+    if (0 != pthread_mutex_init(
+        discover_peers_args.peer_info_list_mutex, NULL)) {
         return_code = FAILURE_PTHREAD_FUNCTION;
         linked_list_destroy(*discover_peers_args.peer_info_list);
         goto end;
@@ -154,7 +156,8 @@ int main(int argc, char **argv) {
     discover_peers_args.should_stop = &discover_peers_should_stop;
     bool discover_peers_exit_ready = false;
     discover_peers_args.exit_ready = &discover_peers_exit_ready;
-    if (SUCCESS != pthread_cond_init(&discover_peers_args.exit_ready_cond, NULL)) {
+    if (SUCCESS != pthread_cond_init(
+        &discover_peers_args.exit_ready_cond, NULL)) {
         return_code = FAILURE_PTHREAD_FUNCTION;
         goto end;
     }
@@ -224,7 +227,8 @@ int main(int argc, char **argv) {
     mine_blocks_args.miner_public_key = &miner_public_key;
     mine_blocks_args.miner_private_key = &miner_private_key;
     mine_blocks_args.peer_info_list = discover_peers_args.peer_info_list;
-    mine_blocks_args.peer_info_list_mutex = discover_peers_args.peer_info_list_mutex;
+    mine_blocks_args.peer_info_list_mutex =
+        discover_peers_args.peer_info_list_mutex;
     mine_blocks_args.print_progress = true;
     mine_blocks_args.outfile = "blockchain.bin";
     mine_blocks_args.should_stop = &should_stop;
@@ -239,7 +243,8 @@ int main(int argc, char **argv) {
         goto end;
     }
     atomic_size_t sync_version_currently_mined = atomic_load(&sync->version);
-    mine_blocks_args.sync_version_currently_mined = &sync_version_currently_mined;
+    mine_blocks_args.sync_version_currently_mined =
+        &sync_version_currently_mined;
     return_code = pthread_cond_init(
         &mine_blocks_args.sync_version_currently_mined_cond, NULL);
     if (SUCCESS != return_code) {
@@ -255,19 +260,25 @@ int main(int argc, char **argv) {
         &run_consensus_peer_server_args.consensus_peer_server_addr.sin6_addr,
         &discover_peers_args.peer_addr.sin6_addr,
         sizeof(IN6_ADDR));
-    run_consensus_peer_server_args.consensus_peer_server_addr.sin6_family = AF_INET6;
-    run_consensus_peer_server_args.consensus_peer_server_addr.sin6_port = htons(peer_port);
+    run_consensus_peer_server_args.consensus_peer_server_addr.sin6_family =
+        AF_INET6;
+    run_consensus_peer_server_args.consensus_peer_server_addr.sin6_port =
+        htons(peer_port);
     run_consensus_peer_server_args.sync = sync;
     run_consensus_peer_server_args.print_progress = false;
     atomic_bool run_consensus_peer_server_should_stop = false;
-    run_consensus_peer_server_args.should_stop = &run_consensus_peer_server_should_stop;
+    run_consensus_peer_server_args.should_stop =
+        &run_consensus_peer_server_should_stop;
     bool run_consensus_peer_server_exit_ready = false;
-    run_consensus_peer_server_args.exit_ready = &run_consensus_peer_server_exit_ready;
-    if (SUCCESS != pthread_cond_init(&run_consensus_peer_server_args.exit_ready_cond, NULL)) {
+    run_consensus_peer_server_args.exit_ready =
+        &run_consensus_peer_server_exit_ready;
+    if (SUCCESS != pthread_cond_init(
+        &run_consensus_peer_server_args.exit_ready_cond, NULL)) {
         return_code = FAILURE_PTHREAD_FUNCTION;
         goto end;
     }
-    if (0 != pthread_mutex_init(&run_consensus_peer_server_args.exit_ready_mutex, NULL)) {
+    if (0 != pthread_mutex_init(
+        &run_consensus_peer_server_args.exit_ready_mutex, NULL)) {
         return_code = FAILURE_PTHREAD_FUNCTION;
         goto end;
     }

@@ -16,22 +16,29 @@ void *broadcast_blockchain(void *args) {
     }
     run_consensus_peer_client_args_t run_consensus_peer_client_args = {0};
     run_consensus_peer_client_args.sync = mine_blocks_args->sync;
-    run_consensus_peer_client_args.peer_info_list = mine_blocks_args->peer_info_list;
-    run_consensus_peer_client_args.peer_info_list_mutex = mine_blocks_args->peer_info_list_mutex;
+    run_consensus_peer_client_args.peer_info_list =
+        mine_blocks_args->peer_info_list;
+    run_consensus_peer_client_args.peer_info_list_mutex =
+        mine_blocks_args->peer_info_list_mutex;
     run_consensus_peer_client_args.print_progress = false;
     atomic_bool run_consensus_peer_client_should_stop = false;
-    run_consensus_peer_client_args.should_stop = &run_consensus_peer_client_should_stop;
+    run_consensus_peer_client_args.should_stop =
+        &run_consensus_peer_client_should_stop;
     bool run_consensus_peer_client_exit_ready = false;
-    run_consensus_peer_client_args.exit_ready = &run_consensus_peer_client_exit_ready;
-    if (SUCCESS != pthread_cond_init(&run_consensus_peer_client_args.exit_ready_cond, NULL)) {
+    run_consensus_peer_client_args.exit_ready =
+        &run_consensus_peer_client_exit_ready;
+    if (SUCCESS != pthread_cond_init(
+        &run_consensus_peer_client_args.exit_ready_cond, NULL)) {
         return_code = FAILURE_PTHREAD_FUNCTION;
         goto end;
     }
-    if (0 != pthread_mutex_init(&run_consensus_peer_client_args.exit_ready_mutex, NULL)) {
+    if (0 != pthread_mutex_init(
+        &run_consensus_peer_client_args.exit_ready_mutex, NULL)) {
         return_code = FAILURE_PTHREAD_FUNCTION;
         goto end;
     }
-    return_code_t *return_code_ptr = run_consensus_peer_client(&run_consensus_peer_client_args);
+    return_code_t *return_code_ptr = run_consensus_peer_client(
+        &run_consensus_peer_client_args);
     free(return_code_ptr);
 end:
     // This is only to avoid an unused variable error.
@@ -69,7 +76,6 @@ return_code_t *mine_blocks(mine_blocks_args_t *args) {
                 return_code = FAILURE_PTHREAD_FUNCTION;
                 goto end;
             }
-            // TODO person who switched the chain is responsible for destroying old chain
             return_code = blockchain_destroy(old_blockchain);
             if (SUCCESS != return_code) {
                 goto end;
