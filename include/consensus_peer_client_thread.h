@@ -8,6 +8,7 @@
 #define INCLUDE_CONSENSUS_PEER_CLIENT_THREAD_H_
 #include <pthread.h>
 #include <stdatomic.h>
+#include "include/peer_discovery.h"
 #include "include/return_codes.h"
 #include "include/linked_list.h"
 #include "include/blockchain.h"

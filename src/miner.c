@@ -11,6 +11,7 @@
 #include "include/base64.h"
 #include "include/blockchain.h"
 #include "include/block.h"
+#include "include/consensus_peer_client_thread.h"
 #include "include/consensus_peer_server_thread.h"
 #include "include/mining_thread.h"
 #include "include/peer_discovery.h"
@@ -266,8 +267,25 @@ int main(int argc, char **argv) {
         return_code = FAILURE_PTHREAD_FUNCTION;
         goto end;
     }
-    // TODO consensus client thread
-
+    run_consensus_peer_client_args_t run_consensus_peer_client_args = {0};
+    run_consensus_peer_client_args.sync = sync;
+    run_consensus_peer_client_args.peer_info_list = discover_peers_args.peer_info_list;
+    run_consensus_peer_client_args.peer_info_list_mutex = discover_peers_args.peer_info_list_mutex;
+    run_consensus_peer_client_args.print_progress = true;
+    atomic_bool run_consensus_peer_client_should_stop = false;
+    run_consensus_peer_client_args.should_stop = &run_consensus_peer_client_should_stop;
+    bool run_consensus_peer_client_exit_ready = false;
+    run_consensus_peer_client_args.exit_ready = &run_consensus_peer_client_exit_ready;
+    if (SUCCESS != pthread_cond_init(&run_consensus_peer_client_args.exit_ready_cond, NULL)) {
+        return_code = FAILURE_PTHREAD_FUNCTION;
+        goto end;
+    }
+    if (0 != pthread_mutex_init(&run_consensus_peer_client_args.exit_ready_mutex, NULL)) {
+        return_code = FAILURE_PTHREAD_FUNCTION;
+        goto end;
+    }
+    // TODO consensus peer should be in mining thread whenever new block is mined
+    // TODO make sure we're sharing mutexes
     // TODO start all threads
     // TODO join later?
     pthread_t discover_peers_thread;
@@ -285,6 +303,15 @@ int main(int argc, char **argv) {
         NULL,
         run_consensus_peer_server_pthread_wrapper,
         &run_consensus_peer_server_args);
+    if (SUCCESS != return_code) {
+        goto end;
+    }
+    pthread_t run_consensus_peer_client_thread;
+    return_code = pthread_create(
+        &run_consensus_peer_client_thread,
+        NULL,
+        run_consensus_peer_client_pthread_wrapper,
+        &run_consensus_peer_client_args);
     if (SUCCESS != return_code) {
         goto end;
     }

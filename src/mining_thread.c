@@ -149,6 +149,7 @@ return_code_t *mine_blocks(mine_blocks_args_t *args) {
             if (NULL != args->outfile) {
                 blockchain_write_to_file(blockchain, args->outfile);
             }
+            // TODO spin up client thread here to broadcast blockchain
         }
     }
     pthread_mutex_lock(&args->exit_ready_mutex);
