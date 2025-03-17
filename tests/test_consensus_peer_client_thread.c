@@ -225,6 +225,7 @@ void test_run_consensus_peer_client_once_switches_to_longest_chain() {
     assert_true(4 == new_blockchain_len);
     atomic_size_t new_sync_version = atomic_load(&sync->version);
     assert_true(new_sync_version > original_sync_version);
+    blockchain_destroy(blockchain);
     blockchain_destroy(peer_blockchain);
     free(send_blockchain_buffer);
     free(command_send_blockchain.blockchain_data);
